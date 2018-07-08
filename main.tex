@@ -1,10 +1,5 @@
 \documentclass[a4paper,oneside,12pt]{book}
 %----------------------------------------------------------------------------------------
-%	WELCOME!
-%   It's probably worth having a read through this file to set up the broad parameters.
-%----------------------------------------------------------------------------------------
-
-%----------------------------------------------------------------------------------------
 %	COVER PAGE
 %   The cover page is laid out in title/title.tex. You can choose a colour
 %   or black and white logo
@@ -18,12 +13,15 @@
 
 \newcommand{\thesistitle}{HubSpot Software Engineering Internship} % Your thesis title, this is used in the title and abstract
 \newcommand{\degree}{MAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
-\newcommand{\typeofthesis}{Final Year Project} % dissertation, Final Year Project, report, etc.
+\newcommand{\typeofthesis}{Internship Report} % dissertation, Final Year Project, report, etc.
 \newcommand{\authorname}{Stefano Lupo} % Your name, this is used in the title page and PDF stuff
 %% Comment out the next line if you don't want your ID to appear
 \newcommand{\authorid}{14334933} % Your ID
-\newcommand{\keywords}{this, that, more} % Keywords for your thesis
+\newcommand{\keywords}{HubSpot, Software Engineering, Programming, Computer Engineering, 4E4 Internship} % Keywords for your thesis
 \newcommand{\school}{\href{http://www.scss.tcd.ie}{School of Computer Science and Statistics}} % Your school's name and URL, this is used in the title page
+
+%% Custom commands
+\newcommand{\team}{Email Sending Infrastructure}
 
 %% Comment out the next line if you don't want a department to appear
 %\newcommand{\department}{\href{http://researchgroup.university.com}{Department Name}} % Your research group's name and URL, this is used in the title page
@@ -64,23 +62,10 @@
 %% My Packages
 \usepackage{enumitem} %Nested lists a la TOC
 \setlist[enumerate]{label*=\arabic*.}
+\usepackage{scrextend} % labeling lists
 
 \pagestyle{plain} % Embrace simplicity!
 
-%% The Mechanical engineers require your name and ID on the top of every page.
-%% Uncomment the following block if you want your name and ID at the top of
-%% (almost) every page.
-
-%\pagestyle{fancy}
-%\fancyhf{} % sets both header and footer to nothing
-%\renewcommand{\headrulewidth}{0pt}
-%\cfoot{\thepage}
-%\ifdefined\authorid
-%\chead{\it \authorname\ (\authorid)}
-%\else
-%\chead{\it \authorname}
-%\fi
-%% End of block
 
 %% It is not a requirement of the university that the font should be sans-serif, but
 %% the Mechanical engineers require it. Comment out the following line to disable it
@@ -122,6 +107,19 @@ A short summary of the problem investigated, the approach taken and the key find
 
 This should be on a separate page.
 
+DESCRIBE THE FOLLOWING LEARNING OUTCOMES (throughout the report, not the abstract)
+\begin{enumerate}
+	\item contribute to the design and development of systems at forefront of CS research and evaluate their performance
+	\item apply theoretical knowledge to solve real world problems
+	\item practice and further devel skills in comms, mgmt and teamwork
+	\item practice and further develop skills in time management and reporting
+	\item contribute to an ethical and profesional work culture
+\end{enumerate}
+
+\begin{enumerate}
+	\item 
+\end{enumerate}
+
 \newpage
 \onehalfspacing\raggedright %\raggedright turns off justification and hypenation
 
@@ -158,6 +156,9 @@ Note that Roman mathematical symbols are typically in a serif font in italics.
 \mainmatter
 \input{plan/plan.tex}
 \input{introduction/introduction.tex}
+\input{tasks_undertaken/tasks_undertaken.tex}
+
+
 \input{background/background.tex}
 % \input{project/project.tex}
 \input{evaluation/evaluation.tex}
