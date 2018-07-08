@@ -62,7 +62,10 @@
 %% My Packages
 \usepackage{enumitem} %Nested lists a la TOC
 \setlist[enumerate]{label*=\arabic*.}
-\usepackage{scrextend} % labeling lists
+
+% List behaviour for team task categories
+\usepackage{scrextend}
+\addtokomafont{labelinglabel}{\sffamily} % Who knows what this does
 
 \pagestyle{plain} % Embrace simplicity!
 
@@ -156,12 +159,12 @@ Note that Roman mathematical symbols are typically in a serif font in italics.
 \mainmatter
 \input{plan/plan.tex}
 \input{introduction/introduction.tex}
+\input{team_process/team_process.tex}
 \input{tasks_undertaken/tasks_undertaken.tex}
 
 
 \input{background/background.tex}
-% \input{project/project.tex}
-\input{evaluation/evaluation.tex}
+\input{project/project.tex}
 \input{conclusion/conclusion.tex}
 \bibliographystyle{unsrtnat}
 \bibliography{bibs/sample}
