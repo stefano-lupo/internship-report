@@ -1,51 +1,42 @@
 \documentclass[a4paper,oneside,12pt]{book}
-%----------------------------------------------------------------------------------------
-%	COVER PAGE
-%   The cover page is laid out in title/title.tex. You can choose a colour
-%   or black and white logo
-%----------------------------------------------------------------------------------------
 
-%----------------------------------------------------------------------------------------
-%	THESIS INFORMATION
-%   Put title, author name, degree, type of work, school, department in here
-%   It will be used for the title page and for the embedded PDF information
-%----------------------------------------------------------------------------------------
-
+% Variable definitions
 \newcommand{\thesistitle}{HubSpot Software Engineering Internship} % Your thesis title, this is used in the title and abstract
 \newcommand{\degree}{MAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
 \newcommand{\typeofthesis}{Internship Report} % dissertation, Final Year Project, report, etc.
 \newcommand{\authorname}{Stefano Lupo} % Your name, this is used in the title page and PDF stuff
-%% Comment out the next line if you don't want your ID to appear
 \newcommand{\authorid}{14334933} % Your ID
 \newcommand{\keywords}{HubSpot, Software Engineering, Programming, Computer Engineering, 4E4 Internship} % Keywords for your thesis
-\newcommand{\school}{\href{http://www.scss.tcd.ie}{School of Computer Science and Statistics}} % Your school's name and URL, this is used in the title page
+\newcommand{\school}{\href{http://www.scss.tcd.ie}{School of Computer Science and Statistics}} % title page
 
-%% Custom commands
+\title{\thesistitle}
+\author{\authorname}
+
+% Custom commands
 \newcommand{\team}{Email Sending Infrastructure}
 
-%% Comment out the next line if you don't want a department to appear
-%\newcommand{\department}{\href{http://researchgroup.university.com}{Department Name}} % Your research group's name and URL, this is used in the title page
-
+% Configure output pdf properties
 \AtBeginDocument{
-\hypersetup{pdftitle=\thesistitle} % Set the PDF's title to your title
-\hypersetup{pdfauthor=\authorname} % Set the PDF's author to your name
-\hypersetup{pdfkeywords=\keywords} % Set the PDF's keywords to your keywords
-\hypersetup{pdfsubject=\degree} % Set the PDF's keywords to your keywords
+\hypersetup{pdftitle=\thesistitle}
+\hypersetup{pdfauthor=\authorname}
+\hypersetup{pdfkeywords=\keywords}
+\hypersetup{pdfsubject=\degree}
 }
 
-%% Language and font encodings
+% Language and font encodings
 \usepackage[T1]{fontenc} 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 
-%% Bibliographical stuff
+% Bibliographical stuff
 \usepackage[round,sort,comma,numbers]{natbib}
 
-%% Document size
+% Document size
 % include showframe as an option if you want to see the boxes
 \usepackage[a4paper,top=2.54cm,bottom=2.54cm,left=2.54cm,right=2.54cm,headheight=16pt]{geometry}
+\pagestyle{plain} % Embrace simplicity!
 
-%% Useful packages
+% Useful packages
 \usepackage{amsmath}
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
 \usepackage[pdftex]{graphicx}
@@ -59,118 +50,50 @@
 \usepackage{booktabs} % To thicken table lines
 \usepackage{fancyhdr}
 
-%% My Packages
-\usepackage{enumitem} %Nested lists a la TOC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% My Packages
+\usepackage{enumitem} %Nested lists a la TOC (plan)
 \setlist[enumerate]{label*=\arabic*.}
 
-% List behaviour for team task categories
-\usepackage{scrextend}
+\usepackage{scrextend}  % List with description all descriptions tabbed as wide as longest
 \addtokomafont{labelinglabel}{\sffamily} % Who knows what this does
 
-\pagestyle{plain} % Embrace simplicity!
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% It is not a requirement of the university that the font should be sans-serif, but
-%% the Mechanical engineers require it. Comment out the following line to disable it
-\renewcommand{\familydefault}{\sfdefault} %use the sans-serif font as default
+% Default to Sans-Serif
+\renewcommand{\familydefault}{\sfdefault}
 
-%% If you're not using sans-serif, consider using Palatino instead of the LaTeX standard
-%\usepackage{mathpazo} % Use the Palatino font by default if you prefer it to Computer Modern
+% Options: Sans-Serif, Computer Modern(latex default), palatino
+\usepackage{mathpazo} % math fonts
+\usepackage{palatino} % nicer font
 
-\renewcommand{\theequation}{\arabic{equation}} %% use continuous equation numbers
+% Use continuous equation numbers
+\renewcommand{\theequation}{\arabic{equation}} 
 
-%% Format Chapter headings appropriately
+% Format Chapter headings appropriately
 \usepackage{titlesec}
 \titleformat{\chapter}[hang] 
 {\normalfont\huge\bfseries}{\thechapter}{1cm}{} 
-
-\title{\thesistitle}
-\author{\authorname}
 
 \frontmatter
 \begin{document}
 \input{title/title.tex}
 \pagenumbering{roman}
-\section*{\Huge{Declaration}}
-\vspace{1cm}
-I hereby declare that this project is entirely my own work and that it has not been submitted as an exercise for a degree at this or any other university.
 
-\vspace{1cm}
-I have read and I understand the plagiarism provisions in the General Regulations of the University Calendar for the current year, found at \url{http://www.tcd.ie/calendar}.
-\vspace{1cm}
-
-I have also completed the Online Tutorial on avoiding plagiarism `Ready Steady Write', located at
-\url{http://tcd-ie.libguides.com/plagiarism/ready-steady-write}.
-\vspace{3cm}
-
-Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
-
-\chapter*{Abstract}
-A short summary of the problem investigated, the approach taken and the key findings. This should be around 400 words, or less.
-
-This should be on a separate page.
-
-DESCRIBE THE FOLLOWING LEARNING OUTCOMES (throughout the report, not the abstract)
-\begin{enumerate}
-	\item contribute to the design and development of systems at forefront of CS research and evaluate their performance
-	\item apply theoretical knowledge to solve real world problems
-	\item practice and further devel skills in comms, mgmt and teamwork
-	\item practice and further develop skills in time management and reporting
-	\item contribute to an ethical and profesional work culture
-\end{enumerate}
-
-\begin{enumerate}
-	\item 
-\end{enumerate}
-
-\newpage
-\onehalfspacing\raggedright %\raggedright turns off justification and hypenation
-
-\section*{\Huge{Acknowledgements}}
-Thanks Mum!
-
-You should acknowledge any help that you have received (for example from technical staff), or input provided by, for example, a company.
-\tableofcontents
-\listoffigures
-\listoftables
-\newpage
-\section*{\Huge{Nomenclature}}
-\begin{tabular}{lp{9cm}l}
-A&Area of the wing&$m^{2}$\\
-B\\
-C& Roman letters first, with capitals\ldots\\
-a&then lower case.\\
-b\\
-c\\
-$\Gamma$&Followed by Greek capitals\ldots\\
-$\alpha$&then lower case greek symbols.\\
-$\beta$\\
-$\epsilon$\\
-TLA&Finally, three letter acronyms and other abbreviations arranged alphabetically\\
-\end{tabular}
-\vspace{2cm}
-
-If a parameter has a typical unit that is used throughout your report, then it should be included here on the right hand side.
-
-If you have a very mathematical report, then you may wish to divide the nomenclature list into functions and variables, and then sub- and super-scripts.
-
-Note that Roman mathematical symbols are typically in a serif font in italics.
 
 \mainmatter
+\input{preamble/preamble.tex}
 \input{plan/plan.tex}
-\input{introduction/introduction.tex}
 \input{team_process/team_process.tex}
 \input{tasks_undertaken/tasks_undertaken.tex}
-
-
 \input{background/background.tex}
-\input{project/project.tex}
-\input{conclusion/conclusion.tex}
+
 \bibliographystyle{unsrtnat}
 \bibliography{bibs/sample}
+
 \appendix
 \renewcommand{\thechapter}{A\arabic{chapter}}
 \input{appendix/appendix.tex}
-
 
 \end{document}
