@@ -1,7 +1,8 @@
-\chapter{Team Process}
+\chapter{Team Process and System Monitoring}
 As with any type of team, it is critical that the team is managed appropriately.  
 
 \section{Task Managemenet}
+\textbf{TODO: GitHub issue tracking}
 In order to maximize productivity and maintain a healthy workload, a system must be put in place which dictates how team members are assigned units of work. The method used by the \team{} team, was to split tasks up into the following five stages:
 
 \begin{labeling}{In-Progress}
@@ -13,3 +14,24 @@ In order to maximize productivity and maintain a healthy workload, a system must
 \end{labeling}
 
 All of the tasks are managed through an online platform called Waffle\cite{waffle} which presents a \textit{"Waffle Board"} which displays the tasks in each of the above stages. The team concludes each week with a meeting in which the board is inspected and tasks are moved to new stages as appropriate. This provides a great mechanism for monitoring the team's productivity and ensuring that the team is focused on the most important tasks. 
+
+\section{System Health Monitoring}
+\textbf{Move this out of here..}
+While working on projects of this magnitude, bugs and issues are an inevitability. The amount of traffic seen by these systems compounds any small issues or bugs present in the system. As such, it is critcal to have systems in place which monitor the health of the system and inform the team of any potential issues with the system. Whatsmore, these issues must be continuously examined and remedial action must be taken where applicable. The \team{} team made use of several tools and methods for monitoring the health of their systems, a subset of which are outlined below:
+
+\subsection{Log4j2}
+Log4j2 is a Java framework which is provides facilities for logging to different log levels and advanced log filtering (for example with regular expressions). This provides an excellent facility for understanding why systems are behaving unexpectedly in production. A common pattern is to insert log messages to a low priority log level (eg DEBUG) which describe the state of the system or the code path taken. Typically when the system is behaving normally, a highger priortiy log level is set (eg INFO) meaning these finer grained log messages are skipped. However, should an issue arise, the log level can then be easily switched to the lower priority temporarily to get a more detailed insight into why the system is misbehaving. This pattern allows detailed log messages to be produced only when they are needed, reducing the amount of noise present in the logs. The framework also provides the ERROR debug mode which can log error messages as uncaught exceptions without killing the currently executing thread.
+
+\subsection{Sentry}
+Sentry is an online platform which logs uncaught exceptions that arise during program execution. This greatly simplifies the task of finding out the reason for a system fault or failure without the need to trawl through pages of log files. Sentry logs the full stack trace associated with an exception, the time of occuence and other pieces of meta data such as the name of the deployable. It uses this data to monitor the occurences of particular exceptions over time, provides facilities for opening and closing GitHub issues and most importantly, to send an email to all those subscribed to the project (eg the \team{} in this case) when an exception occurs. Sentry proves to be extremely useful at deploy time. Obviously when deploying new code to production servers, one must be sure that the changes did not cause the system to enter an unhealthy state. Provided the code is well written and that unexpected exceptions that occur are not silently swallowed, Sentry can be monitored at deploy time in order to help provide the engineer with confidence that the deployed changes were non breaking. Sentry also provides support for integrating into the aforementioned Log4j2. Sentry can monitor ERROR level log messages that are produced by Log4j2 and subsequently log these error messages to sentry. As an engineer this combination of tools is extremely useful for indicating that the system has found an issue, without killing the thread. This is ideal in cases where some work has been done and the system has encountered a critical error, but does not need to be restarted. This mitigates the need to repeat the work, but still enforms the team that an error has occured by logging an exception to Sentry.
+
+\subsection{SignalFX}
+
+
+ 
+
+Mention:
+proactive ops review
+code walkthroughs
+crit sit post mortums
+daily standups
