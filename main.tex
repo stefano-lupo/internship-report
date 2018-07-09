@@ -1,5 +1,7 @@
 \documentclass[a4paper,oneside,12pt]{book}
 
+% Im dumb and will forge this: LaTeX Workshop: latex actions? -> View LaTeX PDF -> View in VS Code tab -> Browser Tab
+
 % Variable definitions
 \newcommand{\thesistitle}{HubSpot Software Engineering Internship} % Your thesis title, this is used in the title and abstract
 \newcommand{\degree}{MAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
@@ -78,22 +80,23 @@
 
 \frontmatter
 \begin{document}
-\input{title/title.tex}
+\input{title.tex}
 \pagenumbering{roman}
 
-
 \mainmatter
-\input{preamble/preamble.tex}
-\input{plan/plan.tex}
-\input{team_process/team_process.tex}
-\input{tasks_undertaken/tasks_undertaken.tex}
-\input{background/background.tex}
+\input{preamble.tex}
+\input{plan.tex}
+\input{introduction.tex}
+\input{hubspot_engineering.tex}
+\input{technologies.tex}
+\input{tasks_undertaken.tex}
+\input{background.tex}
 
 \bibliographystyle{unsrtnat}
-\bibliography{bibs/sample}
+\bibliography{bibliography}
 
 \appendix
 \renewcommand{\thechapter}{A\arabic{chapter}}
-\input{appendix/appendix.tex}
+\input{appendix.tex}
 
 \end{document}

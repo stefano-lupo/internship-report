@@ -1,13 +1,13 @@
-\chapter What is HubSpot?
+\chapter{Software Development at HubSpot}
+Some general content
 
-\section{Inbound Marketing}
+\section{Company Wide Practices}
 
-\section{HubSpot Products}
+\subsection{Git and GitHub Enterprise}
+This needs to go somewhere..
 
-\
-
-\section{System Health Monitoring}
-\textbf{Move this out of here..}
+\section{System Management and Health Monitoring}
+\textbf{Should this be in technologies used, focus this on how it helps the team manage the system}
 While working on projects of this magnitude, bugs and issues are an inevitability. The amount of traffic seen by these systems compounds any small issues or bugs present in the system. As such, it is critcal to have systems in place which monitor the health of the system and inform the team of any potential issues with the system. Whatsmore, these issues must be continuously examined and remedial action must be taken where applicable. The \team{} team made use of several tools and methods for monitoring the health of their systems, a subset of which are outlined below:
 
 \subsection{Log4j2\cite{log4j2}}
@@ -17,6 +17,48 @@ Log4j2 is a Java framework which is provides facilities for logging to different
 Sentry is an online platform which logs uncaught exceptions that arise during program execution. This greatly simplifies the task of finding out the reason for a system fault or failure without the need to trawl through pages of log files. Sentry logs the full stack trace associated with an exception, the time of occuence and other pieces of meta data such as the name of the deployable. It uses this data to monitor the occurences of particular exceptions over time, provides facilities for opening and closing GitHub issues and most importantly, to send an email to all those subscribed to the project (eg the \team{} in this case) when an exception occurs. Sentry proves to be extremely useful at deploy time. Obviously when deploying new code to production servers, one must be sure that the changes did not cause the system to enter an unhealthy state. Provided the code is well written and that unexpected exceptions that occur are not silently swallowed, Sentry can be monitored at deploy time in order to help provide the engineer with confidence that the deployed changes were non breaking. Sentry also provides support for integrating into the aforementioned Log4j2. Sentry can monitor ERROR level log messages that are produced by Log4j2 and subsequently log these error messages to sentry. As an engineer this combination of tools is extremely useful for indicating that the system has found an issue, without killing the thread. This is ideal in cases where some work has been done and the system has encountered a critical error, but does not need to be restarted. This mitigates the need to repeat the work, but still enforms the team that an error has occured by logging an exception to Sentry.
 
 \subsection{SignalFX\cite{sigfx}}
+
+
+
+
+
+\chapter{Team Management and Team Process}
+As with any type of team, it is critical that the team is managed appropriately. Blah blah blah.. 
+
+\section{Issue Tracking}
+Issue tracking through GitHub, cross team colab, closing issues with PRs, 
+
+\section{Task Managemenet}
+\textbf{TODO: Link this with above issue tracking}
+In order to maximize productivity and maintain a healthy workload, a system must be put in place which dictates how team members are assigned units of work. The method used by the \team{} team, was to split tasks up into the following five stages:
+
+\begin{labeling}{In-Progress}
+	\item [Backlog] This contains tasks which are of low priority and can be deferred until a later date
+	\item [Design] This contains tasks which require a considerable amount of planning before being undertaken. Tasks in this stage often result in discussions amongst the team about how best to tackle the task.
+	\item [Ready] Tasks which are sufficiently specified that they can be undertaken. More complex tasks that were once in the design category land here once all of the corresponding details have been decided upon. These are tasks which engineers on the team should choose as a next task upon completion of a task.
+	\item [In-Progress] This contains tasks which are currently being worked on (usually) by a single engineer.
+	\item [Completed] Tasks which have been completed this week.
+\end{labeling}
+
+All of the tasks are managed through an online platform called Waffle\cite{waffle} which presents a \textit{"Waffle Board"} which displays the tasks in each of the above stages. The team concludes each week with a meeting in which the board is inspected and tasks are moved to new stages as appropriate. This provides a great mechanism for monitoring the team's productivity and ensuring that the team is focused on the most important tasks. 
+
+\section{Communication}
+Company wide slack, channel per team, support channels, searchable.
+
+\section{Proactive Ops Reviews}
+
+\section{Code Walkthroughs}
+
+\section{Critical Situation Post Mortums}
+
+\section{Daily Standups}
+
+\section{1 to 1s}
+Might not include this
+
+
+
+
 
 
 
