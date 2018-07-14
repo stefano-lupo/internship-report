@@ -1,10 +1,14 @@
 public class PizzaOrderingService {
-  private DatabaseLogger databaseLogger;
-  private CustomerBiller customerBiller;
+  private SqlTransactionLogger transactionLogger;
+  private PayPalCustomerBiller customerBiller;
+  private AccountsDao accountsDao;
 
   @Inject
-  public PizzaOrderingService(DatabaseLogger databaseLogger, CustomerBiller customerBiller) {
-    this.databaseLogger = databaseLogger
-    this.customerBiller = customerBiller
+  public PizzaOrderingService(SqlTransactionLogger transactionLogger, 
+                              PayPalCustomerBiller customerBiller,
+                              AccountsDao accountsDao) {
+    this.transactionLogger = transactionLogger;
+    this.customerBiller = customerBiller;
+    this.accountsDao = accountsDao;
   }
 }

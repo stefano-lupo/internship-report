@@ -86,11 +86,24 @@ Traditionally, this problem was somewhat helped (but not entirely solved) by the
 
 Dependency injection solves this problem by allowing fully formed instances of dependencies (eg a \java{CustomerBiller}) to be \textit{passed} to the client, removing the need for the client to instantiate the object themselves. Client's simply ask for their dependencies to be injected into their constructor. Guice provides this functionality by simply annotating the constructor with the \java{@Inject} annotation. This (along with a some other boilerplate) informs Guice that this class should have it's dependencies injected into the classes constructor. Guice accomplishes this by building an arbitrarily complex dependency graph at run time. When a class needs a certain dependency, the graph can be examined in order to figure out how to instantiate that dependency. 
 
-However Guice does need a starting point - dependencies can't just be injected for every single class without providing some initial classes in which to build upon. In the example above, these base classes would be the \java{SqlCredentials} and \java{PayPalCredentials} classes. Guice allows us to add vertices to the dependency graph by \textit{providing} objects using the \java{@Provides} annotation. 
+However Guice does need a starting point - dependencies can't just be injected for every single class without providing some initial classes in which to build upon. In the example above, these base classes would be the \java{SqlCredentials} and \java{PayPalCredentials} classes. These classes should not have any injected dependencies. In this example these could simply read the credentials needed from a file. Guice allows us to add vertices to the dependency graph by \textit{providing} objects using the \java{@Provides} annotation. Thus both \java{SqlCredentials} and \java{PayPalCredentials} would need to be \java{@Provided}. The resulting object graph from the code above is show in \ref{fig:depGraph} - notice the classes at the bottom of the hierarchy are provided. 
 
-Aside from abstracting away the dependency instantiation, dependency injection also has the added benefit in that all of a classes dependencies become part of the classes signature. There are no required dependencies that are buried within the implementation logic that may be forgotten about. A key benefit of this pattern is the separation of core functionality and dependency resolution. Burying dependency instantiation inside of a classes implementation makes the class extremely difficult to test. 
+\begin{figure}[H]
+      \centering
+      \includegraphics[width=\textwidth]{DependencyInjection.png}
+      \caption{Dependency Graph built by Guice}
+      \label{fig:depGraph}
+\end{figure}
 
-TESTING CODE hjere..
+This leads to extremely simple code for the \java{PizzaOrderingService} in which the logic is entirely separated from the dependency management.
+
+\lstinputlisting[
+  caption={Pizza Ordering Service using Dependency Injection},
+  label={lst:DI},
+  style=javaStyle
+  ]{code/technologies/DI.java}
+
+Aside from abstracting away the dependency instantiation, dependency injection also has the added benefit in that all of a classes dependencies become part of the classes signature. There are no required dependencies that are buried within the implementation logic. This makes the code much simpler to test. The \java{PayPalCustomerBiller} used by the class is essentially hardwired into the code that does not use dependency injection (\refcode{lst:noDI}), meaning there is no way to test this class without actually billing a (fake) customer. However as the \java{PayPalCustomerBiller} used by the dependency injected code (\refcode{lst:DI}), a mock of this object (which skips the actual billing, but returns results as if it actually billed a customer) can be provided to the class and used for testing purposes.   
 
 \subsection{Immutables - Immutability for Java}
 
