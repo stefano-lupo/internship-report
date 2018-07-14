@@ -1,6 +1,7 @@
 \documentclass[a4paper,oneside,12pt]{book}
 
-% Im dumb and will forge this: LaTeX Workshop: latex actions? -> View LaTeX PDF -> View in VS Code tab -> Browser Tab
+% http://127.0.0.1:42537/viewer.html?file=/pdf:%2Fhome%2Fstefano%2Fcoding%2Finternship-report%2Fmain.pdf
+% Port is logged at start of output log for latex workshop
 
 % Variable definitions
 \newcommand{\thesistitle}{HubSpot Software Engineering Internship} % Your thesis title, this is used in the title and abstract
@@ -13,9 +14,6 @@
 
 \title{\thesistitle}
 \author{\authorname}
-
-% Custom commands
-\newcommand{\team}{Email Sending Infrastructure}
 
 % Configure output pdf properties
 \AtBeginDocument{
@@ -60,6 +58,32 @@
 \usepackage{scrextend}  % List with description all descriptions tabbed as wide as longest
 \addtokomafont{labelinglabel}{\sffamily} % Who knows what this does
 
+\usepackage{listings} % Code listing
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\lstdefinestyle{javaStyle} {
+  language=Java,
+  aboveskip=5mm,
+  belowskip=5mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\footnotesize\ttfamily},
+  numberstyle={\tiny},
+  numbers=left,
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{gray},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2
+}
+
+
+% Custom commands
+\newcommand{\team}{Email Sending Infrastructure}
+\newcommand{\sneaktitle}[1]{\hfill\break\break\textbf{#1}\hfill\break}
+\newcommand{\refcode}[1]{code listing \ref{#1}}
+\newcommand{\java}[1]{\lstinline[columns=fixed]{#1}}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -80,22 +104,22 @@
 
 \frontmatter
 \begin{document}
-\input{title.tex}
+% \input{title.tex}
 \pagenumbering{roman}
 
 \mainmatter
-\input{preamble.tex}
+\input{preamble.tex} % Need to uncomment stuff in here..
 \input{plan.tex}
 \input{introduction.tex}
-\input{hubspot_engineering.tex}
+\input{team.tex}
 \input{technologies.tex}
 \input{tasks_undertaken.tex}
-\input{background.tex}
 
 \bibliographystyle{unsrtnat}
 \bibliography{bibliography}
 
 \appendix
+\lstlistoflistings
 \renewcommand{\thechapter}{A\arabic{chapter}}
 \input{appendix.tex}
 
