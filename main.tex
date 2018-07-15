@@ -40,7 +40,7 @@
 \usepackage{amsmath}
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
 \usepackage[pdftex]{graphicx}
-\graphicspath{{./assets/renders/}}
+\graphicspath{{./assets/}}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=black]{hyperref}
 \usepackage{caption} % if no caption, no colon
@@ -83,14 +83,19 @@
 \usepackage{xcolor}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Custom commands
 \newcommand{\team}{Email Sending Infrastructure}
 \newcommand{\sneaktitle}[1]{\hfill\break\break\textbf{#1}\hfill\break}
 \newcommand{\refcode}[1]{code listing \ref{#1}}
 \newcommand{\java}[1]{\fcolorbox{gray}{gray!50}{\lstinline{#1}}}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Nomenclature (depending on how long this is, add nomenclature section)
+\newcommand{\wZero}{$w_0$} % Kafka Worker 0
+\newcommand{\pZero}{$p_0$} % Partition 0
+\newcommand{\mTwo}{$m_2$}  % Message 2
 
 % Default to Sans-Serif
 \renewcommand{\familydefault}{\sfdefault}
