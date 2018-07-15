@@ -106,6 +106,54 @@ This leads to extremely simple code for the \java{PizzaOrderingService} in which
 Aside from abstracting away the dependency instantiation, dependency injection also has the added benefit in that all of a classes dependencies become part of the classes signature. There are no required dependencies that are buried within the implementation logic. This makes the code much simpler to test. The \java{PayPalCustomerBiller} used by the class is essentially hardwired into the code that does not use dependency injection (\refcode{lst:noDI}), meaning there is no way to test this class without actually billing a (fake) customer. However as the \java{PayPalCustomerBiller} used by the dependency injected code (\refcode{lst:DI}), a mock of this object (which skips the actual billing, but returns results as if it actually billed a customer) can be provided to the class and used for testing purposes.   
 
 \subsection{Immutables - Immutability for Java}
+Immutability is a programming paradigm in which once an object is created, it may never been changed. At first glance this sounds like a bad idea which will result in redundant object creation, but the positives strongly outweigh the negatives. The primary benefit of immutability is that the programmer is \textbf{guaranteed} that any object they hold a reference to, will never be changed. This concept is closely tied to the concept of writing \textit{pure} functions. These are functions which have no external side effects. That is, they take in arguments and return a value, but do not change the input arguments (or any other state contained in the program) in any way. 
+
+These benefits are best highlighted through sample code. Consider the case of a simple website where each login attempt by a user should be logged to a database table in order to detect a hacker trying to crack a password by repeatedly trying to login as a user. For obvious reasons, this table should not store the user's password (in case of real login attempts), so this should be stripped before logging it to the database. An example \java{LoginRequest} is shown in \refcode{lst:loginRequest}. A \java{LoginAttemptLogger} class is written to handle logging these attempts to the database and is shown in \refcode{lst:loginAttemptLogger}. The \java{logLoginAttempt} method handles stripping the password from the \java{LoginRequest} and writing it to the database. 
+
+\lstinputlisting[
+  caption={An Example LoginRequest},
+  label={lst:loginRequest},
+  style=javaStyle
+  ]{code/technologies/immutability/LoginRequest.java}
+
+\lstinputlisting[
+  caption={An Example LoginAttemptLogger Implementation},
+  label={lst:loginAttemptLogger},
+  style=javaStyle
+  ]{code/technologies/immutability/LoginAttemptLogger.java}
+
+However this style of code is a recipie for disaster. The \java{LoginRequest} is mutable and the \java{logLoginAttempt} method contains a side effect in that it sets the password of the \java{LoginRequest} to an empty string. Some perfectly reasonable client code is shown in \refcode{lst:clientLoginCode} in which the client logs the login request to the database and subsequently tries to log in. In this case, no user will ever be able to login as all of the passwords of the login requests are always mutated to be an empty string. Thus, having \java{LoginRequest} as a mutable object causes a critical bug that will not be caught until runtime.
+
+\lstinputlisting[
+  caption={Perfectly Reasonable Client Login Code},
+  label={lst:clientLoginCode},
+  style=javaStyle
+  ]{code/technologies/immutability/ClientLogin.java}
+
+The solution to this problem is to create a new \java{LoginRequest} without the user's password and log that to the database. This can be done inside of the client login code (defensive copying) before passing the \java{LoginReuqest} to the \java{logLoginAttempt}. However if mutators are provided, it is extremelty likely that they will be used somewhere in the code. Thus the best solution is simply to not provide them at all - make the object entirely immutable. This in turn requires some clunky code inside of the client login method (see \refcode{lst:clunkyImmutableClient}), but avoid the issue caused by the side effect of \java{logLoginAttempt}. 
+
+\lstinputlisting[
+  caption={Logically Correct Login Code with Extra Boilerplate},
+  label={lst:clunkyImmutableClient},
+  style=javaStyle
+  ]{code/technologies/immutability/ImmutableClientLogin.java}
+
+The Immutables \cite{immutablesJava} provides a framework for autogenerating fully immutable object implementations in Java. These implementations provide extremely useful functionality such as implementing builders and providing methods for updating the fields of an object in an immutable way. The immutable data structure is defined using an interface (annotated with \java{@Value.Immutable}) which contains the getter methods for each desired field of the object. A class which implements this interface in an immutable way is then auto generated by the framework and can is then used in place of the interface. An example of the interface used for \java{LoginRequest} is shown in \refcode{lst:immutableLibLoginRequest}.
+
+\lstinputlisting[
+  caption={Interface Used to Define LoginRequest using Immutables Framework},
+  label={lst:immutableLibLoginRequest},
+  style=javaStyle
+  ]{code/technologies/immutability/ImmutableLibLoginRequest.java}
+
+The implementation of this interface generated by the framework then provides a \java{withFieldName} method for each of the fields defined, allowing a new instance of the object with the updated fields to be obtained with a single method call as shown in \refcode{lst:loginAttemptLoggerWithImmutable}. This solves the problem of mutating the \java{LoginRequest} that the client holds a reference to and drastically simplifies working with immutable objects in Java. This framework is used exstensively at HubSpot and is a major contributor to the simplicity of writing code without bugs at the company.
+
+\lstinputlisting[
+  caption={The LoginAttemptLogger Method using the Immutables Framework},
+  label={lst:loginAttemptLoggerWithImmutable},
+  style=javaStyle
+  ]{code/technologies/immutability/LoginAttemptLoggerImmutable.java}
+
 
 \subsection{Kafka}
 

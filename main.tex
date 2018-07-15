@@ -80,12 +80,14 @@
 
 \usepackage{float} % Figure placement
 
+\usepackage{xcolor}
+
 
 % Custom commands
 \newcommand{\team}{Email Sending Infrastructure}
 \newcommand{\sneaktitle}[1]{\hfill\break\break\textbf{#1}\hfill\break}
 \newcommand{\refcode}[1]{code listing \ref{#1}}
-\newcommand{\java}[1]{\lstinline[columns=fixed]{#1}}
+\newcommand{\java}[1]{\fcolorbox{gray}{gray!50}{\lstinline{#1}}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
