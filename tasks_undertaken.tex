@@ -112,18 +112,47 @@ Next consider the situation represented in \reffig{fig:exampleIpsByBucket4} alon
 
 In the case of $t = 7$, the algorithm would proceed as before, with one extra recusrive call with $t = 1$. Assuming there were sufficient IPs available (the number of IPs in the diagrams were limited for brevity), the algorithm would have selected the same 6 IPs as before and the final call would be the trivial case of $t = 1$ in which a random IP can be selected. At each stage, the set of IPs returned from the recusrive calls can then be unioned with the current call's chosen IPs, and the unioned set returned. 
 
+The final possibility to consider is what should be done when no buckets are filled. In this case, the algorithm should not select any IPs at this bucket size. Instead, it should reduce the bucket size to the next highest integral of 2 and recurse, setting $t$ equal to this reduced bucket size. However, there is another important step, the need for which is best illustrated with an example. A diagram of this code path is shown in \reffig{fig:ipAlgTrickyCodePath}
+
+If the initial value for $t$ is 6, the initial bucket size will be 4. If no buckets of size 4 are filled, the algorithm will then recurse. Let the total number of IPs requied that is used for this recusrive call be denoted as $t_1'$. Thus, for the recursive call, $t_1' = 2$ (the next largest integral power of 2 as discussed previously) and the set of available IPs is unchanged $S_{a_1} = S_a$. Let the set of chosen IPs returned from this first recursive call be denoted as $S_{c_1}$.
+
+The initial call required 6 IPs to be returned, however this first recursive call will always return 2 IPs that should be used. Thus a second recursive call is required. Let the total number of IPs required that is used for this second recursive call be denoted as $t_2'$. $t_2'$ is calculated using the formula given in \refeq{eq:secondRecurseT2}. This is simply the remaining number of IPs that need to be chosen after the first recursive call. 
+
+\begin{equation}\label{eq:secondRecurseT2}
+t_2' = t - t_1'
+\end{equation}
+
+Finally, the set of available IPs that is used for the second recursive call ($S_{a_2}$) is given by \refeq{eq:availableIpsSecondRecurse}. This is the initial set of all available IPs, with the IPs chosen from the first recursive call ommited.
+
+\begin{equation}\label{eq:availableIpsSecondRecurse}
+S_{a_2} = S_a - S_{c_1}
+\end{equation}
+
+\begin{figure}[H]
+      \centering
+      \includegraphics[width=0.8\textwidth]{renders/IpAlgTrickyCodePath.png}
+      \caption{Code Path when Algorithm Does Not Find Full Bucket}
+      \label{fig:ipAlgTrickyCodePath}
+\end{figure}
+
 The steps of the algorithm (for the simplified case of having no existing IPs) are shown in \ref{list:algSteps}:
-\begin{enumerate}\label{list:algSteps}
+\begin{itemize}\label{list:algSteps}
 \item{Set bucket size to be largest integral power of 2 that is less than $t$}
 \item{Assign all available IPs into buckets using the calculated bucket size}
 \item{If a bucket is full}
-  \begin{enumerate}
+  \begin{itemize}
   \item{Add all of the IPs in the bucket to the set of chosen IPs ($S_c$)}
   \item{Remove all of the IPs in the bucket from the set of available IPs (forms $S_a'$)}
   \item{Calculate $t'$ as $t - bucketSize$}
   \item{Recurse using $S_a'$ and $t'$ (if neccessary)}
-  \end{enumerate}
-\end{enumerate}
+  \end{itemize}
+\item{Otherwise}
+  \begin{itemize}
+  \item{Recurse using next biggest integral power of 2 and the initial set of available IPs}
+  \item{Recurse using the number of remaining IPs required and the set of available IPs, excluding those returned from the previous recursive call}
+  \item{Return the union of the results of the two recursive calls.}
+  \end{itemize}
+\end{itemize}
 
 \subsection{Implementing the Algorithm}
 \subsection{Unit Testing the Algorithm}
