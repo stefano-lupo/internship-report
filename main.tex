@@ -82,6 +82,9 @@
 
 \usepackage{xcolor}
 
+\usepackage[toc,page]{appendix}
+\renewcommand{\appendixname}{Annex}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Custom commands
 \newcommand{\team}{Email Sending Infrastructure}
@@ -91,15 +94,13 @@
 \newcommand{\refeq}[1]{equation \ref{#1}}
 \newcommand{\reftbl}[1]{table \ref{#1}}
 \newcommand{\reffig}[1]{figure \ref{#1}}
+\newcommand{\refapp}[1]{appendix \ref{#1}}
 \newcommand{\java}[1]{\fcolorbox{gray}{gray!50}{\lstinline{#1}}}
 \newcommand{\sub}[1]{_\text{#1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Nomenclature (depending on how long this is, add nomenclature section)
-\newcommand{\wZero}{$w_0$} % Kafka Worker 0
-\newcommand{\pZero}{$p_0$} % Partition 0
-\newcommand{\mTwo}{$m_2$}  % Message 2
+
 
 % Default to Sans-Serif
 \renewcommand{\familydefault}{\sfdefault}
@@ -118,7 +119,7 @@
 
 \frontmatter
 \begin{document}
-% \input{title.tex}
+\input{title.tex}
 \pagenumbering{roman}
 
 \mainmatter
@@ -132,9 +133,12 @@
 \bibliographystyle{unsrtnat}
 \bibliography{bibliography}
 
-\appendix
-\lstlistoflistings
+% \appendix
+
+
 \renewcommand{\thechapter}{A\arabic{chapter}}
+
 \input{appendix.tex}
+
 
 \end{document}
