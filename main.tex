@@ -69,10 +69,10 @@
   numbers=left,
   keywordstyle=\color{blue},
   commentstyle=\color{dkgreen},
-  stringstyle=\color{gray},
+  stringstyle=\color{purple},
   breaklines=true,
   breakatwhitespace=true,
-  tabsize=2
+  tabsize=1
 }
 
 \usepackage{float} % Figure placement
@@ -92,7 +92,9 @@
 \newcommand{\reftbl}[1]{table \ref{#1}}
 \newcommand{\reffig}[1]{figure \ref{#1}}
 \newcommand{\refapp}[1]{appendix \ref{#1}}
-\newcommand{\java}[1]{\fcolorbox{gray}{gray!50}{\lstinline{#1}}}
+\definecolor{light-gray}{gray}{0.95}
+\lstset{language=java, basicstyle={\normalsize\ttfamily\bfseries},}
+\newcommand{\java}[1]{\colorbox{light-gray}{\lstinline{#1}}}
 \newcommand{\sub}[1]{_\text{#1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
