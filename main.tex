@@ -111,8 +111,16 @@
 
 % Format Chapter headings appropriately
 \usepackage{titlesec}
-\titleformat{\chapter}[hang] 
-{\normalfont\huge\bfseries}{\thechapter}{1cm}{} 
+\titleformat{\chapter}[block] 
+{\normalfont\huge\bfseries}{\thechapter}{0.6cm}{} 
+
+\usepackage{titlesec}
+\titleformat{\section}[block] 
+{\normalfont\Large\bfseries}{\thesection}{0.6cm}{} 
+
+\usepackage{titlesec}
+\titleformat{\subsection}[block] 
+{\normalfont\large\bfseries}{\thesubsection}{0.6cm}{} 
 
 \frontmatter
 \begin{document}
