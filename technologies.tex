@@ -214,14 +214,21 @@ A final note of interest regarding Kafka is that it provides and \textit{at-leas
 
 % \subsection{ZooKeeper (Circus)}\
 
+% \subsection{Maven - Dependency Management}
+
 \subsection{Hadoop}
 
 \subsection{gRPC and Protobuf}
 
-% \subsection{Maven - Dependency Management}
+
 
 \section{Email Specific Technologies}
 \subsection{DNS} \label{sec:DNS}
+Although not entirely email specific, DNS is extremely critical for the \team{} team. Aside from teams working on the HubSpot platform, most other teams need not concern themselves with DNS at all. 
+
+DIAGRAM OF RECORDS?
+DKIM SELECTORS **
+each of the record types, when an email arrives what is looked at, look at the tld, then zones on that tld then record types and key values etc. UDP typically, fallback to TCP
 \subsection{SMTP} \label{sec:smtp}
 
 \section{System Management and Health Monitoring}
@@ -234,4 +241,8 @@ Log4j2 \cite{log4j2} is a Java framework which is provides facilities for loggin
 Sentry \cite{sentry} is an online platform which logs uncaught exceptions that arise during program execution. This greatly simplifies the task of finding out the reason for a system fault or failure without the need to trawl through pages of log files. Sentry logs the full stack trace associated with an exception, the time of occuence and other pieces of meta data such as the name of the deployable. It uses this data to monitor the occurences of particular exceptions over time, provides facilities for opening and closing GitHub issues and most importantly, to send an email to all those subscribed to the project (eg the \team{} in this case) when an exception occurs. Sentry proves to be extremely useful at deploy time. Obviously when deploying new code to production servers, one must be sure that the changes did not cause the system to enter an unhealthy state. Provided the code is well written and that unexpected exceptions that occur are not silently swallowed, Sentry can be monitored at deploy time in order to help provide the engineer with confidence that the deployed changes were non breaking. Sentry also provides support for integrating into the aforementioned Log4j2. Sentry can monitor ERROR level log messages that are produced by Log4j2 and subsequently log these error messages to sentry. As an engineer this combination of tools is extremely useful for indicating that the system has found an issue, without killing the thread. This is ideal in cases where some work has been done and the system has encountered a critical error, but does not need to be restarted. This mitigates the need to repeat the work, but still enforms the team that an error has occured by logging an exception to Sentry.
 
 \subsection{SignalFX}
-SignalFX \cite{sigfx} is a 
+SignalFX \cite{sigfx} is a online tool for recording metrics and data visualization. Gathering and analysing metrics is a key part of ensuring the health of a comlpex system. When things start to fail, SignalFX is the first place engineers look to. SignalFX essentially allows data to be dumped to the cloud and for complex graphs and charts to be rendered in real time using this data. SignalFX supports creating dashboards consiting of many of these graphs and charts. The \team{} team has several of these dashboards, each encapsulating a single part of the system. When problems inevitably arise, the team can examine these dashboards in order to try and isolate and find the problem. Once remedial action has been taken, the dashboards can be monitored to ensure the desired effect takes place. Being able to see these metrics in close to real time is incredibily useful for diagnosing faults with the system. It also serves as an excellent mechanism for finding parts of the system that can be improved. For example, critical code paths can be timed and the results logged to sentry. This allows accurate inferences to be made about parts of the system and allows the team to target these parts.
+
+SignalFX also allows for detectors to be configured. For example, a chart could be created monitoring the number of emails sent in the past minute by each IP address responsible for sending emails. A detector can then be put in place to detect if this number falls below a certain threshold. Detectors can be configured to alert via email and slack when they fire, allowing engineers to be notified. 
+
+SignalFX also supports complex data aggregations. This is beneficial as it decouples calculations that need to be done on metrics from the code which the metrics are monitoring. Perform any sort of data manipulation in performance critical code paths is obviously not desirable when every millisecond counts. Instead, metrics gathering is as simple as producing the data to SignalFX. The complex graphs and charts can then be configured inside of the SignalFX tool, entirely independant to the production code. 
