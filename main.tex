@@ -54,7 +54,7 @@
 \setlist[enumerate]{label*=\arabic*.}
 
 \usepackage{scrextend}  % List with description all descriptions tabbed as wide as longest
-\addtokomafont{labelinglabel}{\sffamily} % Who knows what this does
+\addtokomafont{labelinglabel}{\itshape} % Who knows what this does
 
 \usepackage{listings} % Code listing
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -116,10 +116,12 @@
 \titleformat{\chapter}[block] 
 {\normalfont\huge\bfseries}{\thechapter}{0.6cm}{} 
 
+% Format Section headings appropriately
 \usepackage{titlesec}
 \titleformat{\section}[block] 
 {\normalfont\Large\bfseries}{\thesection}{0.6cm}{} 
 
+% Format SubSection headings appropriately
 \usepackage{titlesec}
 \titleformat{\subsection}[block] 
 {\normalfont\large\bfseries}{\thesubsection}{0.6cm}{} 
