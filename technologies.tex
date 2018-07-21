@@ -58,7 +58,7 @@ Comparing \refcode{lst:withoutStreams} and \refcode{lst:withStreams}, the clarit
 
 
 %% Completable Futures
-\sneaktitle{Completable Futures}
+\sneaktitle*{Completable Futures}
 Asynchronus programming is present in most if not all modern systems. In the early days of Java, this was accomplished by the JDK through abstractions at the thread level. This required careful tracking of the state of threads by the programmer. Concurrent programs are incredibly difficult to reason about and thus concurrency is one of the most challening aspects of modern software engineering and is the source of a huge number of bugs. However the benefits of concurrent programming are extremely obvious, essentially making it a nescesity in modern systems. Thus any abstractions that can aid in reducing the number of things a programmer must keep track of will be beneficial. In Java 8's case, this abstraction is the CompletableFuture API. This API allows for programmers to perform asynchronus tasks by specifying a \java{Supplier<U>}, a function which takes no arguments and returns (supplies) a value of type \java{U}, which will return a value at some point in the future. Thus what's returned from this call is not an instance of type \java{U}, but a \java{CompletableFuture<U>}, that is, an object that at some point in the future will contain an instance of type \java{U} (provided no errors occur). 
 
 The programmer may also specify an \java{Executor} \cite{javaExecutor} which is essentially an object (e.g. threadpool) capable of running tasks on a thread other than the thread in the current context. If no \java{Executor} is specified, the task is automatically submited to Java's work stealing \java{ForkJoinPool} \cite{javaForkJoinPool}. 
@@ -222,7 +222,7 @@ Indexes, liquibase, InnoDB
 
 \section{Email Specific Technologies}
 \subsection{DNS} \label{sec:DNS}
-\subsection{SMTP}
+\subsection{SMTP} \label{sec:smtp}
 
 \section{System Management and Health Monitoring}
 \textbf{Should this be in technologies used, focus this on how it helps the team manage the system}
