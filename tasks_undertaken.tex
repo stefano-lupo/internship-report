@@ -8,9 +8,9 @@ DNS plays an important part in sending emails. As discussed in \refsec{sec:DNS},
 
 As things change at HubSpot, it is quite likely that these DNS records would need to change over time. For example, if the customer should add another dedicated IP address to their account, this would have to be added to their SPF record. At first glance this would require HubSpot's customers to be frequently changing their DNS records, something most customer's would not be overly comfortable with. The solution to this problem (as with so many problems in computer science) is indirection. 
 
-The Domain Name System supports the concept of including other DNS records, even from entirely different domains. This is exactly the behaviour that lets HubSpot manage their customers' DNS on their behalf. For example, instead of \java{emails.company.com} having the SPF record which contains their allowed sending IPs and having to change it when things change, they can simply setup this record as a pointer to another DNS record, a record on HubSpot's domain. Clients who require the SPF record for for \java{emails.company.com} will be informed to use the record contained on HubSpot's domain instead. An example of this is shown in \reffig{fig:dnsIncludes}, where 99 is the customer's HubSpot identification number. 
+The Domain Name System supports the concept of including other DNS records, even from entirely different domains. This is exactly the behaviour that lets HubSpot manage their customers' DNS on their behalf. For example, instead of \java{emails.company.com} having the SPF record which contains their allowed sending IPs and having to change it should their sending IPs change, they can simply setup this record as a pointer to another DNS record, a record on HubSpot's domain. Clients who require the SPF record for for \java{emails.company.com} will be informed to use the record contained on HubSpot's domain instead. An example of this is shown in \reffig{fig:dnsIncludes}, where 99 is the customer's HubSpot identification number. A similar setup exists for customers' DKIM records.
 
-Thus once the customer only ever needs to set up the DNS pointers to HubSpot's domain once. Once that is done, HubSpot can control the actual values of those DNS records on behalf of the customer. 
+Thus the customer only ever needs to set up the DNS pointers to HubSpot's domain once. Once that is done, HubSpot can control the actual values of those DNS records on behalf of the customer. 
 
 \begin{figure}[H]
       \centering
@@ -19,6 +19,69 @@ Thus once the customer only ever needs to set up the DNS pointers to HubSpot's d
       \label{fig:dnsIncludes}
 \end{figure}
 
+Initially, all of the DNS records living on the \java{spf.hubspot.com} (the ones which customers include) were created at various points in the code. There was no definition for exactly what DNS records should be available and were they should be available for a given account. Some of the DNS record creation was coupled to the code that was responsible for creating new customer accounts, but as time went on, different DNS records were required, resulting in redundant DNS records being created. There were also several scheduled CRON jobs, jobs which run periodically, responsible for checking the current status of the DNS records and attempting to adjust them as neccessary. There was no unit tests for any of the code which synced DNS records. Some of these jobs concluded that different values should exist for the same DNS record, resulting in the jobs competing with each other and update DNS records every time they ran.
+
+During the implementation of the auto DNS task described in \refsec{sec:autoDns}, the need to rewrite this entire system became clear. 
+
+\subsection{Requirements for the Management System}
+Prior to begining to rebuild the system, an analysis of the current system was required to ensure all of the required functionality contained in the old system would be included in the new system. Another important step was to consider what the \textit{ideal} system would look like. There were two main options to consider:
+
+\begin{enumerate}
+    \item{Create all of the DNS records required when the corresponding customer account was created. As discussed previously, it is likely that the value of these DNS records would change over time. Thus, this would also require periodic CRON jobs in order to compare the current state of a customer's DNS records against what the system believes their DNS records should be and to update them accordingly. The downside to this approach was having the required DNS records defined and maintained in two separate places - once during account creation and once during the DNS record synchronization.}
+    \item{Abstract away all DNS record creation from the account creation process and write the period CRON jobs in such a way that they can also create brand new DNS records as neccessary. The downside of this approach is that there would be a period of time in which the accounts would be created, but have invalid DNS records, which could be problematic if not managed appropriately.}  
+\end{enumerate}
+
+After some consideration, it became clear that option two was the better choice. The period of time in which the accounts would be created but have invalid DNS records could be managed rather simply. Provided the jobs were written correctly, this approach would have the benefit that it could sync DNS records for arbitrarily complex entities. For example, initially the customer's account was all that was required in order to keep their DNS records in sync. However as time went on, other types of DNS records also needed to be maintained, which could not neccessarily be deterministically determined from just a customer's account. An example of this is IP addresses which are owned by HubSpot, but not yet in use by any customer. These IP addresses should have specific DNS records in place. However by definition, these IP addresses are not yet assigned to any accounts. Thus the new system should also be able to sync DNS records based on IP addresses. In the past the solution to this problem would have been to simply create yet another periodic CRON job to maintain those DNS records, making it even more difficult for an engineer to know where in the code a given DNS record is maintained.
+
+Another important concept are DNS \textit{zones} (subdomains). For easier organization and management of a large number of DNS records, a top level domain (TLD) can be further subcategorized into zones. In the previous example domain \java{emails.company.com}, the TLD is \java{company.com} and a zone on that TLD is \java{emails}. The purpose of DNS zones is to allow finer grained control for a domain with a large number of DNS records. For example, all of the records to do with HubSpot's email marketing are contained on the \java{emails} zone, isolated from all of the domain's other records (eg for their website, internal email etc). 
+
+The requirements of the new system were determined to be the following:
+\begin{enumerate}
+      \item{It can sync DNS records for arbitrary entities (Accounts, IP Addresses etc)}
+      \item{The code for generating the values of specific DNS records should be decoupled from the code which actually runs the job. This allows for comprehensive unit testing of the code which generates the records.}
+      \item{It should only make external requests to update records which are no longer valid.}
+      \item{It should group the records required for a given entity by zone, allowing for easier record lookups and updates}
+\end{enumerate}
+
+\subsection{Implementation of the System}
+The first task was to decide how the code which builds the DNS records should be organized. It was imperative to have this code be as clear and concise as possible. The DNS records themselves are hosted on various providers (eg Cloudfare), but the Platform team in HubSpot provides a simple client for working with these records (creating records etc). A \java{DnsRecordBuilder<T>} interface was defined and is shown in \refapp{appendix:dnsManagement} \refcode{lst:dnsRecordBuilder}. This interface defines the following methods:
+
+\begin{itemize}
+
+      \item{\java{Multimap<String, RecordRequest> buildSpfRecords(T entity)}}
+      \begin{itemize}
+            \item{This method will generate the SPF record required for a given entity of type \java{T} (eg an account)}
+            \item{Equivalent methods are also defined for MX, A and DKIM records}
+            \item{The \java{RecordRequest} object is a Java object which contains can be passed to the DnsClient library to create / update / delete the given record}
+            \item{These methods return Multimaps (which is essentially a \java{Map<String, Collection<RecordRequest>>}) which use the record's zone as the key}
+            \item{All of these methods are defaulted to returning empty multimaps (if they are not overridden)}
+      \end{itemize}
+
+      \item{\java{boolean appliesTo(T entity)}}
+      \begin{itemize}
+            \item{This method specifies whether or not this particular implementation of \java{DnsRecordBuilder} should apply to this entity}
+            \item{For example if the entity was an account, this method can be used to specify that only accounts with dedicated IP addresses should use this \java{DnsRecordBuilder}}
+      \end{itemize}
+
+      \item{\java{Map<String, DnsConfiguration> getDnsConfigByZone(T entity)}}
+      \begin{itemize}
+            \item{The \java{DnsConfiguration} is a Java object which contains a zone name and a list of \java{RecordRequest} objects (which contains all of the records to be created)}
+            \item{This method has a useful default implementation which aggregates all of the multimaps returned by each methods which builds records of each type (SPF, DKIM, A, MX) into a single multimap. The returned map of \java{DnsConfiuration} DNS configurations by zone can then be built and returned.}
+            \item{This is the most common method called on this interface as it invokes all of the other methods, returning the exact DNS configurations (by zone) needed to keep the given entity up to date.}
+      \end{itemize}
+
+      \item{\java{Map<String, String> buildPtrRecords(T entity)}}
+      \begin{itemize}
+            \item{The final method defines the PTR records that should be created for this entity, returning a map containing the IP address as the key and the host name as the value}
+            \item{As discussed in \refsec{sec:DNS}, PTR records are used to perform reverse A lookups, defining the host name associated with an IP address.}
+      \end{itemize}
+\end{itemize}
+
+Implementations of this interface can then be created for a given entity type. For example, a \java{DefaultAccountDnsRecordBuilder<Account>} was created to encapsulate all of the records that need to be created for every HubSpot customer account. Similarly, a \java{UnassignedIpDnsRecordBuilder<IpAddress>} was also created to encapsulate all of the DNS records required for an unassigned IP address. The \java{IpAddress} object contains the status of the IP address (whether its associated with a customer account or not etc). The \java{appliesTo} method of this implementation can then check this field and only return DNS records if the \java{IpAddress} is in fact unassigned. Several implementations of \java{DnsRecordBuilder<T>} were created, the implementations of which are specific to the entity and not directly of interest.
+
+The next step in the implementation was to write an intermediate class which given an entity of type \java{T}, applies all of the \java{DnsRecordBuilder}s corresponding to the entity and finds out which records need updating. All implementations of \java{DnsRecordBuilder<T>} can be injected into this class using Guice (see \refsec{sec:guice}). A simple method can then be written to determine the list of \java{DnsRecordBuilder<T>}s that should be applied to the entity by looking at the entities type. The \java{getDnsConfigurationsByZone} method defined above is invoked on each of the builder in the list, generating all of the DNS records that need to be present fot the given entity. Finally another piece of logic was written which finds any differences between live DNS records and those returned by the builders. Any records which require updates are then added to a \java{List<DnsConfiguration>} and returned to the caller to perform the actual updating. This code segment is provided in \refapp{appendix:dnsManagement} \refcode{lst:recordBuilderApplier}.
+
+The final step was to create the CRON job which will use the above code to keep the required DNS records in sync. The HubSpot development platform provides a simple means of registering jobs which are to be run on a schedule. The benefits of the extra complexity of the above code are seen in the implementation of the job. The job simply fetches all of the entities of interest (Accounts, IP addresses etc) from a database. For each of these entities, the job calls the method from the intermediate class as discussed in the previous paragraph using the entity as a parameter. This method returns the list of records which need be updated or created and then handles performing the required operations. A simplified version of the job in which the DNS records for all accounts are synced is shown in \refapp{appendix:dnsManagement} \refcode{lst:dnsSyncJob}.
 
 \section{Auto DNS for dedicated IPs} \label{sec:autoDns}
 

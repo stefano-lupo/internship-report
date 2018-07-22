@@ -72,7 +72,7 @@ The API provides a simple \java{get} method for blocking until the return value 
 \end{labeling}
 
 
-\subsection{Guice - Dependency Injection}
+\subsection{Guice - Dependency Injection}\label{sec:guice}
 Google's Guice \cite{guice} is a dependency injection framework for Java. Dependency injection is a software pattern which abstracts away the actual construction (instantiation) of objects from the user. As a system grows and abstractions are built atop one and other, simply instantiating an object can be come tedious and difficult. Traditionally, in order to instantiate an object, all of its unconditionally required dependencies must be passed to the constructor of the object. Otherwise the object could be left in an inconsistent state. Thus in order to instantiate an object \java{O}, all of its dependencies, for example \java{X, Y and Z} must be provided to \java{O}'s constructor. Thus the client of \java{O} must first instantiate instances of \java{X, Y and Z} before it can use \java{O}. However \java{X} may have it's own set of dependencies and the problem simply gets worse and worse. An example of the difficulties this can cause (based on the example in Guice's documentation \cite{guiceDocs}) is shown in \refcode{lst:noDI}. The code shown has to recursively create each of the dependencies for each of it's dependencies which can quickly get out of hand for large systems.
 
 \lstinputlisting[

@@ -117,12 +117,10 @@
 {\normalfont\huge\bfseries}{\thechapter}{0.6cm}{} 
 
 % Format Section headings appropriately
-\usepackage{titlesec}
 \titleformat{\section}[block] 
 {\normalfont\Large\bfseries}{\thesection}{0.6cm}{} 
 
 % Format SubSection headings appropriately
-\usepackage{titlesec}
 \titleformat{\subsection}[block] 
 {\normalfont\large\bfseries}{\thesubsection}{0.6cm}{} 
 
@@ -144,7 +142,9 @@
 \bibliographystyle{unsrtnat}
 \bibliography{bibliography}
 
-\renewcommand{\thechapter}{A\arabic{chapter}}
+% Prepend App. to chapter headings
+\titleformat{\chapter}[block] 
+{\normalfont\LARGE\bfseries}{App. \thechapter}{0.6cm}{} 
 \input{appendix.tex}
 
 \end{document}

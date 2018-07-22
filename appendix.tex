@@ -1,5 +1,25 @@
-% \appendix
 \begin{appendices}
+
+\chapter{Source Code for DNS Management System}
+\label{appendix:dnsManagement}
+\lstinputlisting[
+  caption={The DnsRecordBuilder interface},
+  label={lst:dnsRecordBuilder},
+  style=javaStyle
+  ]{code/tasks_undertaken/dns_management/DnsRecordBuilder.java}
+
+\lstinputlisting[
+  caption={Apply \java{DnsRecordBuilder}s and find records that need updating.},
+  label={lst:recordBuilderApplier},
+  style=javaStyle
+  ]{code/tasks_undertaken/dns_management/DnsRecordBuilderApplier.java}
+
+\lstinputlisting[
+  caption={A simplified DNS sync job implementation},
+  label={lst:dnsSyncJob},
+  style=javaStyle
+  ]{code/tasks_undertaken/dns_management/DnsSyncJob.java}
+
 \chapter{Intelligently Choosing a Single IP from the Available Pool}
 \label{appendix:smartSingleIP}
 Content content..
@@ -11,5 +31,7 @@ Content content
 \chapter{Source Code for the CIDR Minimization Algorithm}
 \label{appendix:algSourceCode}
 Content content
+
+
 
 \end{appendices}
