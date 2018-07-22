@@ -257,9 +257,8 @@ Although Protobufs are a useful tool in their own right, they are also the IDL (
   \item{The final type of call is \textit{bidirectional streaming}. As expected, this is when both the client and server communicate using streams. These streams are entirely independant from one and other, allowing the client / server to read messages in any order.}
 \end{enumerate}
 
-The \team{} team uses gRPC and Protobuf at the final stage of the email sending pipeline. The last step is to get the email to the servers which are responsible for sending the email to the recipient using SMTP. As discussed in \refsec{sec:sec:emailSendingInfra}, SMTP email sends can take on the order of seconds. This leads to a very asynchronous system which causes issues if using standard REST endpoints over HTTP/1.1. 
+The \team{} team uses gRPC and Protobuf at the final stage of the email sending pipeline. The last step is to get the email to the servers which are responsible for sending the email to the recipient using SMTP. As discussed in \refsec{sec:sec:emailSendingInfra}, SMTP email sends can take on the order of seconds. This leads to a very asynchronous system which causes issues if using standard REST endpoints over HTTP/1.1. \hfill
 
-\break
 \textbf{WHY NOT KAFKA HERE?!}
 
 \section{Email Specific Technologies}
@@ -269,7 +268,23 @@ Although not entirely email specific, DNS is extremely critical for the \team{} 
 DIAGRAM OF RECORDS?
 DKIM SELECTORS **
 each of the record types, when an email arrives what is looked at, look at the tld, then zones on that tld then record types and key values etc. UDP typically, fallback to TCP
-\subsection{SMTP} \label{sec:smtp}
+
+
+\subsection{Simple Mail Transfer Protocol (SMTP)} \label{sec:smtp}
+SMTP is the protocol used for sending email to a mail server. SMTP is quite an old protocol, with the first published RFC being published in 1982 \cite{smtpRfc}. For an email to be sent from one machine to another, a connection must be opened up between the mail server responsible for the sender's email and the mail server responsible for the recipient's machine and SMTP defines the way in which messages should be exchanged between these two servers. Most mail servers today support 
+Extended SMTP (ESMTP), which is outlined in RFC 1869 \cite{esmtpRfc}. This defines a format for indicating which extensions a given SMTP server supports. 
+
+SMTP contains 6 main steps to send email:
+\begin{labeling}{MAIL FROM: }
+  \item[EHLO] The first SMTP command of interest is \java{EHLO <SMTP domain>}. This is the first message expected by the server. In turn, the SMTP server will respond with a 250 OK message and list all of the extensions it supports. 
+  \item[MAIL FROM:] The sender then specifies the mail from address to be used for the email (who the email was sent from) using \java{MAIL FROM: <from_email_address>}. Again, provided the server accepts the email address as valid, the server should return a 250 OK.
+  \item[RCPT TO:] The sender then specifies the email address that the SMTP server should deliver the email to using \java{RCPT TO: <recipient_email_address>}. Provided the SMTP server accepts responsibility for this recipient address (it expects to receive email for this address), the server will again respond with a 250 OK. Otherwise, the server will reject the message and terminate the connection.
+  \item[DATA] The sender then indicates that it wished to begin sending the data contained in the email message, by sending the \java{DATA} command. The server will then return with a 354, along with some instruction on how to terminate the message, indiciating that the client may begin to send the message.
+  \item[<content>] The sender then proceeds to send the content of the email message line by line, followed finally by a specific message indiciating that the content is completed. This termination message is a single period character on its own line. The server should again respond with a 250 OK once the content has been received.
+  \item[QUIT] Finally, the sender issues a \java{QUIT} command. The server will respond with a 221 message and the session may be safely terminated.
+\end{labeling}
+
+As the name suggests, SMTP is quite a simple protocol. Many libraries exist which handle SMTP messaging exchanges. However as this needs to happen for every single email that is sent through HubSpot, the \team{} team implemented their own Java high performance and open source SMTP library, NioSmtpClient \cite{hubspotSmtp}. This SMTP client supports several of the SMTP extensions such as TLS which provides encryption and SMTPUTF 8 which supports sending UTF8 characters over SMTP. It also allows connections to be recycled and can automatically determine most efficient sending method based on the EHLO response from the server.     
 
 \section{System Management and Health Monitoring}
 While working on projects of this magnitude, bugs and issues are an inevitability. The amount of traffic seen by these systems compounds any small issues or bugs present in the system. As such, it is critcal to have systems in place which monitor the health of the system and inform the team of any potential issues with the system. Whatsmore, these issues must be continuously examined and remedial action must be taken where applicable. The \team{} team made use of several tools and methods for monitoring the health of their systems, a subset of which are outlined below:
