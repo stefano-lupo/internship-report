@@ -1,0 +1,130 @@
+This is BibTeX, Version 0.99d (TeX Live 2015/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: main.aux
+The style file: unsrtnat.bst
+Database file #1: bibliography.bib
+Warning--entry type for "waffle" isn't style-file defined
+--line 1 of file bibliography.bib
+Warning--entry type for "log4j2" isn't style-file defined
+--line 7 of file bibliography.bib
+Warning--entry type for "sentry" isn't style-file defined
+--line 13 of file bibliography.bib
+Warning--entry type for "sigfx" isn't style-file defined
+--line 19 of file bibliography.bib
+Warning--entry type for "javaExecutor" isn't style-file defined
+--line 32 of file bibliography.bib
+Warning--entry type for "javaForkJoinPool" isn't style-file defined
+--line 38 of file bibliography.bib
+Warning--entry type for "javaCfArticle" isn't style-file defined
+--line 44 of file bibliography.bib
+Warning--entry type for "guice" isn't style-file defined
+--line 51 of file bibliography.bib
+Warning--entry type for "guiceDocs" isn't style-file defined
+--line 57 of file bibliography.bib
+Warning--entry type for "factoryMethodPattern" isn't style-file defined
+--line 63 of file bibliography.bib
+Warning--entry type for "immutablesJava" isn't style-file defined
+--line 69 of file bibliography.bib
+Warning--entry type for "kafka" isn't style-file defined
+--line 75 of file bibliography.bib
+Warning--entry type for "highlyCompositeNumbers" isn't style-file defined
+--line 81 of file bibliography.bib
+Warning--entry type for "spfRFC" isn't style-file defined
+--line 87 of file bibliography.bib
+Warning--entry type for "cidr" isn't style-file defined
+--line 94 of file bibliography.bib
+Warning--entry type for "whatIsHubSpot" isn't style-file defined
+--line 100 of file bibliography.bib
+Warning--entry type for "githubEnterp" isn't style-file defined
+--line 106 of file bibliography.bib
+Warning--entry type for "git" isn't style-file defined
+--line 112 of file bibliography.bib
+Warning--entry type for "slack" isn't style-file defined
+--line 118 of file bibliography.bib
+Warning--entry type for "hadoop" isn't style-file defined
+--line 124 of file bibliography.bib
+Warning--entry type for "s3" isn't style-file defined
+--line 130 of file bibliography.bib
+Warning--entry type for "HDFS" isn't style-file defined
+--line 136 of file bibliography.bib
+Warning--entry type for "protobuf" isn't style-file defined
+--line 142 of file bibliography.bib
+Warning--entry type for "protobufSizeStat" isn't style-file defined
+--line 148 of file bibliography.bib
+Warning--entry type for "gRPC" isn't style-file defined
+--line 154 of file bibliography.bib
+Warning--entry type for "smtpRfc" isn't style-file defined
+--line 166 of file bibliography.bib
+Warning--entry type for "hubspotSmtp" isn't style-file defined
+--line 180 of file bibliography.bib
+Warning--I didn't find a database entry for "("
+Warning--I didn't find a database entry for "esmtpRfc"
+Warning--empty year in whatIsHubSpot
+Warning--empty year in githubEnterp
+Warning--empty year in git
+Warning--empty year in waffle
+Warning--empty year in slack
+Warning--empty journal in java9Million
+Warning--empty year in javaExecutor
+Warning--empty year in javaForkJoinPool
+Warning--empty year in javaCfArticle
+Warning--empty year in guice
+Warning--empty year in guiceDocs
+Warning--empty year in factoryMethodPattern
+Warning--empty year in immutablesJava
+Warning--empty year in kafka
+Warning--empty year in highlyCompositeNumbers
+Warning--empty year in s3
+Warning--empty year in hadoop
+Warning--empty year in HDFS
+Warning--empty year in protobuf
+Warning--empty year in protobufSizeStat
+Warning--empty year in gRPC
+Warning--empty year in hubspotSmtp
+Warning--empty year in log4j2
+Warning--empty year in sentry
+Warning--empty year in sigfx
+Warning--empty year in spfRFC
+Warning--empty year in cidr
+You've used 28 entries,
+            2481 wiz_defined-function locations,
+            676 strings with 7282 characters,
+and the built_in function-call counts, 7217 in all, are:
+= -- 584
+> -- 204
+< -- 28
++ -- 123
+- -- 58
+* -- 309
+:= -- 1073
+add.period$ -- 85
+call.type$ -- 28
+change.case$ -- 56
+chr.to.int$ -- 19
+cite$ -- 55
+duplicate$ -- 396
+empty$ -- 839
+format.name$ -- 88
+if$ -- 1569
+int.to.chr$ -- 10
+int.to.str$ -- 29
+missing$ -- 1
+newline$ -- 149
+num.names$ -- 84
+pop$ -- 410
+preamble$ -- 1
+purify$ -- 28
+quote$ -- 0
+skip$ -- 257
+stack$ -- 0
+substring$ -- 56
+swap$ -- 68
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 196
+warning$ -- 27
+while$ -- 56
+width$ -- 0
+write$ -- 331
+(There were 56 warnings)

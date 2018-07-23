@@ -262,9 +262,33 @@ The \team{} team uses gRPC and Protobuf at the final stage of the email sending 
 \textbf{WHY NOT KAFKA HERE?!}
 
 \section{Email Specific Technologies}
-\subsection{DNS} \label{sec:DNS}
-Although not entirely email specific, DNS is extremely critical for the \team{} team. Aside from teams working on the HubSpot platform, most other teams need not concern themselves with DNS at all. 
+\subsection{Domain Name System (DNS)} \label{sec:DNS}
 
+
+
+DMARC
+Although not entirely email specific, DNS is extremely critical for the \team{} team. Aside from teams working on the HubSpot platform, most other teams need not concern themselves with DNS at all. However as DNS is such an important component of email, DNS records must be carefuly maintained. For the sake of email, there are five key DNS record types, outlined below.
+
+\begin{labeling}{DKIM }
+  \item[A] A records are used exstensively in DNS. These records define the IP address that is associated with a particular domain. For example, the IP address of the web server which hosts the website \textit{hubspot.com} can be obtained by performing a DNS lookup for the A record associated with \textit{hubspot.com}. This address translation is done every time a user visits a website and enables the use of memorable, human friendly domain names instead of raw IP addresses.
+  \item[MX] MX (Mail Exchanger) records are similar to A records except they define the \textbf{hosts} which can accept mail for a given domain. For example, if an email is to be sent to \textit{billing@hubspot.com}, the email sender must know where to send that email. Thus an MX lookup is performed for \textit{hubspot.com}, the domain in which the account associated with the email address \textit{billing@hubspot.com} resides on. This typically returns a host name, for example, \textit{mx.hubspot.com}. Thus a subsequent A record lookup for \textit{mx.hubspot.com} is required to determine the exact IP address(es) of the server(s) which can accept email for \textit{billing@hubspot.com}.
+  \item[SPF] SPF (Sender Policy Framework) records are used to authorize a set of IP addresses which a domain can legitimately send from. The friendly-from address of an email (the sender's address) is simply a plain text header contained in the email. This means that anyone could potentially send email as someone else by spoofing the friendly-from address. SPF records provide part of the mechanism which solves this problem. A domain can declare a list of IP addresses it intends to send email from using an SPF record. Thus when an email is received from \textit{stefano@example.com}, the SPF record associated with \textit{example.com} can then be fetched and if the source IP address of the email does not match one of the declared IP addresses, the email may be blindly accepted, tentitively accepted or dropped entirely. An example SPF record would be \java{v=spf1 ip4:1.2.3.4/30 -all}. The first component (\java{v=spf1}) indicates the SPF version in use, the second component (\java{ip4:1.2.3.4/30}) is a CIDR representation of the IP addresses this domain authorizes (see \refsec{sec:CIDR}) and the final component (\java{-all}) indiciates that email sent from all other IP addresses except the ones defined here should be dropped. 
+  \item[DKIM] DKIM (DomainKeys Indentified Mail) records provide another level of authentication. DKIM uses asymmetric-key cryptography to digitially sign emails, verifying that the email was sent by an authorized sender (provided only authorized senders hold the private key). This is done by signing the email with a \textit{DKIM-Signature} an example of which is shown below:
+
+
+  \begin{lstlisting}[label=lst:dkimHeader]
+    DKIM-Signature: v=1; a=rsa-sha256; d=example.com; s=news;
+    c=relaxed/relaxed; q=dns/txt; t=1126524832; x=1149015927;
+    h=from:to:subject:date:keywords:keywords;
+    bh=MHIzKDU2Nzf3MDEyNzR1Njc5OTAyMjM0MUY3ODlqBLP=;
+    b=hyjCnOfAKDdLZdKIc9G1q7LoDWlEniSbzc+yuU2zGrtruF00ldcF
+    VoG4WTHNiYwG
+  \end{lstlisting}
+
+  contains a cryptographic hash of the email using the domain's private key, the domain which should be . When an email is received, the public key can be retrieved by performing a DNS lookup 
+  
+  DKIM keys are contained under the \textit{\textunderscore domainkey} sub domain and are prepended with a DKIM \textit{selector}. DKIM records are stored as TXT records and their values consist of multipe \java{tag=value} pairs. The key components of a DKIM DNS record are the following:
+\end{labeling}
 DIAGRAM OF RECORDS?
 DKIM SELECTORS **
 each of the record types, when an email arrives what is looked at, look at the tld, then zones on that tld then record types and key values etc. UDP typically, fallback to TCP
