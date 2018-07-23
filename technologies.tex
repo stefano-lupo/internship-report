@@ -248,7 +248,7 @@ Protobufs works by defining the desired data structures in a special .proto file
   style=protoStyle,
   ]{code/technologies/person.proto}
 
-Although Protobufs are a useful tool in their own right, they are also the IDL (interface definition language) of choice for the open source gRPC framework \cite{gRPC}. gRPC is a cross language remote procedure calling framework. It serves as an alternative to the previoud defacto standard of having services communicate using REST endpoints over HTTP 1.1. gRPC operates by defining a service and specifying the methods that can be called remotely with their parameters and return types \cite(gRPCDef). As with Protobuf, compilers exist for these languages which generate the client side and server side code. These methods (by default) take in and return Protobuf messages. Clients of the service then remotely invoke these methods on objects they hold known as \textit{stubs} and the implementations of these methods is contained on the server. To the client, the procedure call appears no different to any other procedure call as all of the remote networking is handled by the framework. The gRPC framework provides four types of RPC invocations:
+Although Protobufs are a useful tool in their own right, they are also the IDL (interface definition language) of choice for the open source gRPC framework \cite{gRPC}. gRPC is a cross language remote procedure calling framework. It serves as an alternative to the previoud defacto standard of having services communicate using REST endpoints over HTTP 1.1. gRPC operates by defining a service and specifying the methods that can be called remotely with their parameters and return types \cite{gRPCDef}. As with Protobuf, compilers exist for these languages which generate the client side and server side code. These methods (by default) take in and return Protobuf messages. Clients of the service then remotely invoke these methods on objects they hold known as \textit{stubs} and the implementations of these methods is contained on the server. To the client, the procedure call appears no different to any other procedure call as all of the remote networking is handled by the framework. The gRPC framework provides four types of RPC invocations:
 
 \begin{enumerate}
   \item{The first type of call is a simple \textit{unary} call. In this case, the client sends a single request to the server, who handles the request and returns a single response.}
@@ -257,41 +257,42 @@ Although Protobufs are a useful tool in their own right, they are also the IDL (
   \item{The final type of call is \textit{bidirectional streaming}. As expected, this is when both the client and server communicate using streams. These streams are entirely independant from one and other, allowing the client / server to read messages in any order.}
 \end{enumerate}
 
-The \team{} team uses gRPC and Protobuf at the final stage of the email sending pipeline. The last step is to get the email to the servers which are responsible for sending the email to the recipient using SMTP. As discussed in \refsec{sec:sec:emailSendingInfra}, SMTP email sends can take on the order of seconds. This leads to a very asynchronous system which causes issues if using standard REST endpoints over HTTP/1.1. \hfill
+The \team{} team uses gRPC and Protobuf at the final stage of the email sending pipeline. The last step is to get the email to the servers which are responsible for sending the email to the recipient using SMTP. As discussed in \refsec{sec:emailSendingInfra}, SMTP email sends can take on the order of seconds. This leads to a very asynchronous system which causes issues if using standard REST endpoints over HTTP/1.1. \hfill
 
-\textbf{WHY NOT KAFKA HERE?!}
+\textbf{DESCRIBE WHY NOT KAFKA HERE?!}
+\vfill
 
 \section{Email Specific Technologies}
 \subsection{Domain Name System (DNS)} \label{sec:DNS}
 
-
-
-DMARC
 Although not entirely email specific, DNS is extremely critical for the \team{} team. Aside from teams working on the HubSpot platform, most other teams need not concern themselves with DNS at all. However as DNS is such an important component of email, DNS records must be carefuly maintained. For the sake of email, there are five key DNS record types, outlined below.
 
 \begin{labeling}{DKIM }
   \item[A] A records are used exstensively in DNS. These records define the IP address that is associated with a particular domain. For example, the IP address of the web server which hosts the website \textit{hubspot.com} can be obtained by performing a DNS lookup for the A record associated with \textit{hubspot.com}. This address translation is done every time a user visits a website and enables the use of memorable, human friendly domain names instead of raw IP addresses.
   \item[MX] MX (Mail Exchanger) records are similar to A records except they define the \textbf{hosts} which can accept mail for a given domain. For example, if an email is to be sent to \textit{billing@hubspot.com}, the email sender must know where to send that email. Thus an MX lookup is performed for \textit{hubspot.com}, the domain in which the account associated with the email address \textit{billing@hubspot.com} resides on. This typically returns a host name, for example, \textit{mx.hubspot.com}. Thus a subsequent A record lookup for \textit{mx.hubspot.com} is required to determine the exact IP address(es) of the server(s) which can accept email for \textit{billing@hubspot.com}.
   \item[SPF] SPF (Sender Policy Framework) records are used to authorize a set of IP addresses which a domain can legitimately send from. The friendly-from address of an email (the sender's address) is simply a plain text header contained in the email. This means that anyone could potentially send email as someone else by spoofing the friendly-from address. SPF records provide part of the mechanism which solves this problem. A domain can declare a list of IP addresses it intends to send email from using an SPF record. Thus when an email is received from \textit{stefano@example.com}, the SPF record associated with \textit{example.com} can then be fetched and if the source IP address of the email does not match one of the declared IP addresses, the email may be blindly accepted, tentitively accepted or dropped entirely. An example SPF record would be \java{v=spf1 ip4:1.2.3.4/30 -all}. The first component (\java{v=spf1}) indicates the SPF version in use, the second component (\java{ip4:1.2.3.4/30}) is a CIDR representation of the IP addresses this domain authorizes (see \refsec{sec:CIDR}) and the final component (\java{-all}) indiciates that email sent from all other IP addresses except the ones defined here should be dropped. 
-  \item[DKIM] DKIM (DomainKeys Indentified Mail) records provide another level of authentication. DKIM uses asymmetric-key cryptography to digitially sign emails, verifying that the email was sent by an authorized sender (provided only authorized senders hold the private key). This is done by signing the email with a \textit{DKIM-Signature} an example of which is shown below:
+  \item[DKIM] DKIM (DomainKeys Indentified Mail) records provide another level of authentication. DKIM uses asymmetric-key cryptography to digitially sign emails, verifying that the email was sent by an authorized sender (provided only authorized senders hold the private key). DKIM keys are contained under the \textit{\textunderscore domainkey} sub domain and are prepended with a DKIM \textit{selector} This is done by signing the email with a \textit{DKIM-Signature} an example of which is shown below:
 
+  \lstinputlisting[
+  caption={An example DKIM signature},
+  label={lst:dkimSig},
+  style=protoStyle,
+  ]{code/technologies/dkim.txt}
 
-  \begin{lstlisting}[label=lst:dkimHeader]
-    DKIM-Signature: v=1; a=rsa-sha256; d=example.com; s=news;
-    c=relaxed/relaxed; q=dns/txt; t=1126524832; x=1149015927;
-    h=from:to:subject:date:keywords:keywords;
-    bh=MHIzKDU2Nzf3MDEyNzR1Njc5OTAyMjM0MUY3ODlqBLP=;
-    b=hyjCnOfAKDdLZdKIc9G1q7LoDWlEniSbzc+yuU2zGrtruF00ldcF
-    VoG4WTHNiYwG
-  \end{lstlisting}
+  The most important DKIM tag-value pairs are outlined below \cite{dkimSig}:
+  \begin{labeling}{bh }
+    \item[v] This indicates the DKIM version in use
+    \item[a] This indicates the algorithm used to generate the signature.
+    \item[s] This is the selctor prefix and is used to pick the public key to use from those available at the \textit{\textunderscore domainkey} subdomain.
+    \item[h] This contains the list of headers which were hashed to generate the \textit{b} tag
+    \item[b] This contains the Base-64 encoded hash of the the headers listed in \textit{h}
+    \item[bh] This contains the hash of the body of the email
+    \item[d] This contains the domain in which the corresponding public key can be found
+  \end{labeling}
 
-  contains a cryptographic hash of the email using the domain's private key, the domain which should be . When an email is received, the public key can be retrieved by performing a DNS lookup 
+  The corresponding public key can be found by performing a TXT lookup of \java{<s>._domainkey.<d>}, or in the above case \java{news._domainkey.example.com}. The value of these records also contain tag-value pairs, such as \textit{k} which indicates the cryptography system used and \textit{p} which contains the public key itself.
   
-  DKIM keys are contained under the \textit{\textunderscore domainkey} sub domain and are prepended with a DKIM \textit{selector}. DKIM records are stored as TXT records and their values consist of multipe \java{tag=value} pairs. The key components of a DKIM DNS record are the following:
 \end{labeling}
-DIAGRAM OF RECORDS?
-DKIM SELECTORS **
-each of the record types, when an email arrives what is looked at, look at the tld, then zones on that tld then record types and key values etc. UDP typically, fallback to TCP
 
 
 \subsection{Simple Mail Transfer Protocol (SMTP)} \label{sec:smtp}
