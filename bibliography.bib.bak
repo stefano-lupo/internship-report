@@ -85,7 +85,7 @@
 }
 
 @online{spfRFC,
-  title={RFC 7208, Sender Policy Framework (SPF)},
+  title={RFC 7208, Sender Policy Frameowkr (SPF)},
   author={S. Kitterman, Kitterman Technical Services},
   date={April 2014},
   note={tools.ietf.org/html/rfc7208}
