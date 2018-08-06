@@ -1,6 +1,7 @@
 class LoginAttemptLogger {
   LoginRequestDao loginRequestDao;
 
+  @Inject
   public LoginAttemptLogger(LoginRequestDao loginRequestDao) {
     this.loginRequestDao = loginRequestDao;
   }
