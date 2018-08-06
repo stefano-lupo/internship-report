@@ -18,20 +18,20 @@ Thus the customer only ever needs to set up the DNS pointers to HubSpot's domain
       \label{fig:dnsIncludes}
 \end{figure}
 
-Initially, all of the DNS records living on the \java{spf.hubspot.com} (the ones which customers include) were created at various points in the code. There was no definition for exactly what DNS records should be available and where they should be available for a given account. Some of the DNS record creation was coupled to the code that was responsible for creating new customer accounts, but as time went on, different DNS records were required, resulting in redundant DNS records being created. There were also several scheduled Cron jobs, jobs which run periodically, responsible for checking the current status of the DNS records and attempting to adjust them as necessary. There were no unit tests for any of the code which synced DNS records. Some of these jobs concluded that different values should exist for the same DNS record, resulting in the jobs competing with each other and updating DNS records every time they ran. It was also unclear what DNS changes were required if accounts were updated. This led to the creation of an entirely new DNS management system.
+Initially, all of the DNS records that the customers include were created at various points in the code. There was no definition for exactly what DNS records should be available and where they should be available for a given account. Some of the DNS record creation was coupled to the code that was responsible for creating new customer accounts, but as time went on, different DNS records were required, resulting in redundant DNS records being created. There were also several cron jobs (jobs which run on a schedule) responsible for checking the current status of the DNS records and attempting to adjust them as necessary. There was also no unit tests for any of the code which synced DNS records. Some of these jobs concluded that different values should exist for the same DNS record, resulting in the jobs competing with each other and updating DNS records every time they ran. It was also unclear what DNS changes were required if accounts were updated. This led to the creation of an entirely new DNS management system.
 
 
 \subsection{Requirements for the Management System}
 Prior to beginning to rebuild the system, an analysis of the current system was required to ensure all of the required functionality contained in the old system would be included in the new system. Another important step was to consider what the \textit{ideal} system would look like. There were two main options to consider:
 
 \begin{enumerate}
-    \item{Create all of the DNS records required when the corresponding customer account was created. As discussed previously, it is likely that the value of these DNS records would change over time. Thus, this would also require periodic CRON jobs in order to compare the current state of a customer's DNS records against what the system believes their DNS records should be and to update them accordingly. The downside to this approach was having the required DNS records defined and maintained in two separate places - once during account creation and once during the DNS record synchronization.}
-    \item{Abstract away all DNS record creation from the account creation process and write the periodic CRON jobs in such a way that they can also create brand new DNS records as necessary. The downside of this approach is that there would be a period of time in which the accounts would be created, but have invalid DNS records, which could be problematic if not managed appropriately.}  
+    \item{Create all of the DNS records required when the corresponding customer account was created. As discussed previously, it is likely that the value of these DNS records would change over time. Thus, this would also require periodic cron jobs in order to compare the current state of a customer's DNS records against what the system believes their DNS records should be and to update them accordingly. The downside to this approach was having the required DNS records defined and maintained in two separate places - once during account creation and once during the DNS record synchronization.}
+    \item{Abstract away all DNS record creation from the account creation process and write the periodic cron jobs in such a way that they can also create brand new DNS records as necessary. The downside of this approach is that there would be a period of time in which the accounts would be created, but have invalid DNS records, which could be problematic if not managed appropriately.}  
 \end{enumerate}
 
-After some consideration, it became clear that option two was the better choice. The period of time in which the accounts would be created but have invalid DNS records could be managed rather simply. Provided the jobs were written correctly, this approach would have the benefit that it could sync DNS records for arbitrarily complex entities. For example, initially the customer's account was all that was required in order to keep their DNS records in sync. However as time went on, other types of DNS records also needed to be maintained, which could not necessarily be deterministically generated from just a customer's account. An example of this is IP addresses which are owned by HubSpot, but not yet in use by any customer. These IP addresses should have specific DNS records in place. However by definition, these IP addresses are not yet assigned to any accounts. Thus the new system should also be able to sync DNS records based on IP addresses. In the past the solution to this problem would have been to simply create yet another periodic CRON job to maintain those DNS records, making it even more difficult for an engineer to know where in the code a given DNS record is maintained.
+After some consideration, it became clear that option two was the better choice. The period of time in which the accounts would be created but have invalid DNS records could be managed rather simply. Provided the jobs were written correctly, this approach would have the benefit that it could sync DNS records for arbitrarily complex entities. For example, initially the customer's account was all that was required in order to keep their DNS records in sync. However as time went on, other types of DNS records also needed to be maintained, which could not necessarily be deterministically generated from just a customer's account. An example of this is IP addresses which are owned by HubSpot, but not yet in use by any customer. These IP addresses should have specific DNS records in place. However by definition, these IP addresses are not yet assigned to any accounts. Thus the new system should also be able to sync DNS records based on IP addresses. In the past the solution to this problem would have been to simply create yet another periodic cron job to maintain those DNS records, making it even more difficult for an engineer to know where in the code a given DNS record is maintained.
 
-Another important concept are DNS \textit{zones} (sub domains). For easier organization and management of a large number of DNS records, a top level domain (TLD) can be further sub-categorized into zones. In the previous example domain \java{emails.company.com}, the TLD is \java{company.com} and a zone on that TLD is \java{emails}. The purpose of DNS zones is to allow finer grained control for a domain with a large number of DNS records. For example, a customer could setup all of the records required for HubSpot's email marketing on a single zone, the \java{emails} zone, isolated from all of the domain's other records (e.g. for their website, internal email etc). 
+Another important concept are DNS \textit{zones} (sub domains). For easier organization and management of a large number of DNS records, a top level domain (TLD) can be further sub-categorized into zones. In the previous example domain \java{emails.company.com}, the TLD is \java{company.com} and a zone on that TLD could be created for \java{emails}. The purpose of DNS zones is to allow finer grained control for a domain with a large number of DNS records. For example, a customer could setup all of the records required for HubSpot's email marketing on a single zone, the \java{emails} zone, isolated from all of the domain's other records (e.g. for their website, internal email etc). 
 
 The requirements of the new system were determined to be the following:
 \begin{enumerate}
@@ -48,9 +48,9 @@ The first task was to decide how the code which builds the DNS records should be
 
       \item{\java{Multimap<String, RecordRequest> buildSpfRecords(T entity)}}
       \begin{itemize}
-            \item{This method will generate the SPF record required for a given entity of type \java{T} (e.g. an account)}
+            \item{This method will generate the SPF records required for a given entity of type \java{T} (e.g. an account)}
             \item{Equivalent methods are also defined for MX, A and DKIM records}
-            \item{The \java{RecordRequest} object is a Java object which contains can be passed to the DnsClient library to create / update / delete the given record}
+            \item{The \java{RecordRequest} object is a Java object whose contents can be passed to the DnsClient library to create / update / delete the given record}
             \item{These methods return Multimaps (which is essentially a \java{Map<String, Collection<RecordRequest>>}) which use the record's zone as the key}
             \item{All of these methods are defaulted to returning empty multimaps (if they are not overridden)}
       \end{itemize}
@@ -75,7 +75,7 @@ The first task was to decide how the code which builds the DNS records should be
       \end{itemize}
 \end{itemize}
 
-Implementations of this interface can then be created for a given entity type. For example, a \java{DefaultAccountDnsRecordBuilder<Account>} was created to encapsulate all of the records that need to be created for every HubSpot customer account. Similarly, a \java{UnassignedIpDnsRecordBuilder<IpAddress>} was also created to encapsulate all of the DNS records required for an unassigned IP address. The \java{IpAddress} object contains the status of the IP address (whether its associated with a customer account or not etc). The \java{appliesTo} method of this implementation can then check this field and only return DNS records if the \java{IpAddress} is in fact unassigned. As time went on, more of these \java{DnsRecordBuilder} implementations were created, encapsulating different DNS requirements. This provides a very clean and extensible way of defining DNS records which are deterministically built from arbitrary entities.
+Implementations of this interface can then be created for a given entity type. For example, a \java{DefaultAccountDnsRecordBuilder<Account>} was created to encapsulate all of the records that need to be created for every HubSpot customer account. Similarly, a \java{UnassignedIpDnsRecordBuilder<IpAddress>} was also created to encapsulate all of the DNS records required for an unassigned IP address. The \java{IpAddress} object contains the status of the IP address (whether its associated with a customer account or not). The \java{appliesTo} method of this implementation can then check this field and only return DNS records if the \java{IpAddress} is in fact unassigned. As time went on, more of these \java{DnsRecordBuilder} implementations were created, encapsulating different DNS requirements. This provides a very clean and extensible way of defining DNS records which are deterministically built from arbitrary entities.
 
 The next step in the implementation was to write an intermediate class which given an entity of type \java{T}, applies all of the \java{DnsRecordBuilder}s corresponding to the entity and finds out which records need updating. 
 
@@ -83,7 +83,7 @@ A \java{Map<Class, List<DnsRecordBuilder>>} is created and is used to determine 
 
 Finally another piece of logic was written to determine which records need to be updated for the entity. This is done by checking the records against an in-memory cache, a database cache and finally live DNS. This reduces the number of real DNS queries that need to be made. The in-memory cache and database cache would be frequently invalidated to ensure cached DNS records had not become stale. Any records which require updates are then added to a \java{List<DnsConfiguration>} and returned to the caller to perform the actual updating. This code segment is provided in \refapp{appendix:dnsManagement} \refcode{lst:recordBuilderApplier}.
 
-The final step was to create the Cron job which will use the above code to keep the required DNS records in sync. The HubSpot development platform provides a simple means of registering jobs which are to be run on a schedule. The benefits of the extra complexity of the above code are seen in the implementation of the job. The job simply fetches all of the entities of interest (accounts, IP addresses etc) from a database. For each of these entities, the job calls the method from the intermediate class as discussed in the previous paragraph using the entity as a parameter. This method returns the list of records which need be updated or created. The job then handles performing the required DNS updates. A simplified version of the job in which the DNS records for all accounts are synced is shown in \refapp{appendix:dnsManagement} \refcode{lst:dnsSyncJob}.
+The final step was to create the cron job which will use the above code to keep the required DNS records in sync. The HubSpot development platform provides a simple means of registering jobs which are to be run on a schedule. The benefits of the extra complexity of the above code are seen in the implementation of the job. The job simply fetches all of the entities of interest (\java{Account}s, \java{IpAddress}es etc) from a database. For each of these entities, the job calls the method from the intermediate class as discussed in the previous paragraph using the entity as a parameter. This method returns the list of records which need be updated or created. The job then handles performing the required DNS updates. A simplified version of the job in which the DNS records for all accounts are synced is shown in \refapp{appendix:dnsManagement} \refcode{lst:dnsSyncJob}.
 
 \break
 \section{CIDR Minimization Algorithm}
@@ -105,9 +105,9 @@ Typically IP addresses are represented as quartet of period separated integers r
 
 
 
-$192.168.1.1$ could be represented as a 32 bit integer by using $192$ as the most upper (most significant) 8 bits, $168$ as the next 8 bits and so on. CIDR notation contains the IP address in question, followed by a slash and a number, for example $192.168.1.2/31$. CIDR notation partitions the 32 bit representation of the IP address into two pieces - the upper bits make up the network prefix and the remaining bits are used to specify the specific host on that network. The number following the slash denotes the number of bits to use for the network prefix. Thus $192.168.1.3/31$ specifies that 31 out of the 32 bits should be used for the network prefix and all other bits should be zeroed in order to obtain the network address. This implies that the network address is $192.168.1.2$. This is because the least significant byte of this IP address is 3, or $(0000\enspace0011)_2$ in binary, and the last bit is to be zeroed meaning the last byte of the network address becomes $(0000\enspace0010)_2$, which is 2 in base-10. 
+$192.168.1.1$ could be represented as a 32 bit integer by using $192$ as the upper (most significant) 8 bits, $168$ as the next 8 bits and so on. CIDR notation contains the IP address in question, followed by a slash and a number, for example $192.168.1.2/31$. CIDR notation partitions the 32 bit representation of the IP address into two pieces - the upper bits make up the network prefix and the remaining bits are used to specify the specific host on that network. The number following the slash denotes the number of bits to use for the network prefix. Thus $192.168.1.3/31$ specifies that 31 out of the 32 bits should be used for the network prefix and all other bits should be zeroed in order to obtain the network address. This implies that the network address is $192.168.1.2$. This is because the least significant byte of this IP address is 3, or $(0000\enspace0011)_2$ in binary, and the last bit is to be zeroed meaning the last byte of the network address becomes $(0000\enspace0010)_2$, which is 2 in base-10. 
 
-CIDR notation can thus be used to represent a set of IP addresses, provided they are contiguous. The set has a cardinality that is an integral power of 2 and the first IP address in the set lies on a CIDR boundary. The set of IPs $\{192.168.1.0, 192.168.1.1\}$ can be represented using CIDR notation as $192.168.1.0/31$. The logic here is that the address of the subnet containing the hosts of interest is provided and the implied set of IPs is the set of all IP addresses of the hosts on that subnet.  Thus if a customer owns these two IP addresses, their SPF record can simply contain the CIDR notation value of the subnet which contains the two IP addresses, reducing the number of characters required by almost half. This is due to the fact that $/31$ implies that there is one bit (the last bit) which identifies the host on the subnetwork defined by $192.168.1.0$. This bit can either be a zero or a one, yielding the two possible IP addresses that were started with - $192.168.1.0$ or $192.168.1.1$.
+CIDR notation can thus be used to represent a set of IP addresses, provided they are contiguous. The set has a cardinality that is an integral power of 2 and the first IP address in the set lies on a CIDR boundary. The set of IPs $\{192.168.1.0,\enspace192.168.1.1\}$ can be represented using CIDR notation as $192.168.1.0/31$. The logic here is that the address of the subnet containing the hosts of interest is provided and the implied set of IPs is the set of all IP addresses of the hosts on that subnet.  Thus if a customer owns these two IP addresses, their SPF record can simply contain the CIDR notation value of the subnet which contains the two IP addresses, reducing the number of characters required by almost half. This is due to the fact that $/31$ implies that there is one bit (the last bit) which identifies the host on the subnetwork defined by $192.168.1.0$. This bit can either be a zero or a one, yielding the two possible IP addresses that were started with - $192.168.1.0$ or $192.168.1.1$.
 
 \subsection{A Simplified Version of the Algorithm}
 The main objective of the algorithm is summarized as follows (Note if the CIDR post fix is omitted, $/32$ is implied): \hfill\break\break
@@ -151,8 +151,6 @@ n\sub{hosts} = 2 ^ {n_{hb}}
 \end{equation}
 
 \begin{table}[H]
-\caption{The Size of CIDR blocks as a function of $n_{hb}$}
-\label{tbl:cidrBlockSize}
 \centering
 \begin{tabular}{l l l}
 \toprule
@@ -166,22 +164,24 @@ n\sub{hosts} = 2 ^ {n_{hb}}
 1.1.1.0/1 & 31 & $2 ^ {31}$\\
 \bottomrule\\
 \end{tabular}
+\caption{The Size of CIDR Blocks as a Function of $n_{hb}$}
+\label{tbl:cidrBlockSize}
 \end{table}
 
 Thus, the largest possible block of CIDR IPs for a given $t$ can be obtained by finding the highest integral power of two that is less than or equal to $t$. For example, if $t = 10$, then 8 would be the largest possible CIDR block as $2^3 = 8$ but $2^4 = 16$.
 
-An importance concept of the algorithm is assigning each IP address to a certain bucket. This assignment process needs to know what bucket size to use. Critically, the bucket sized used will be an integral power of 2 aligning with the above table. The IPs will be placed into the bucket that represents the subnet that they would be contained within for a given number of host bits. Logically, the presence of a filled bucket indicates that a CIDR block can be formed from the set of IPs contained in that bucket. An example is shown in \reffig{fig:exampleIpsByBucket4}. In this case, bucket $1.1.1.0$ is full as the bucket size is 4, meaning the IPs inside it can be used to create a CIDR block of size 4 - $1.1.1.0/30$.
+An importance concept of the algorithm is assigning each IP address to a certain \textit{bucket}. This assignment process needs to know what bucket size to use. The IPs will be placed into the bucket that represents the subnet that they would be contained within for a given number of host bits. Thus, the bucket sized used will be an integral power of 2 aligning with \reftbl{tbl:cidrBlockSize}. Logically, the presence of a filled bucket indicates that a CIDR block can be formed from the set of IPs contained in that bucket. An example is shown in \reffig{fig:exampleIpsByBucket4} using a bucket size of 4. In this case, bucket $1.1.1.0$ is full, meaning the IPs inside it can be used to create the CIDR block of size 4 $\{1.1.1.0/30\}$.
 
 \begin{figure}[H]
       \centering
-      \includegraphics[width=0.8\textwidth]{renders/IpsByBucketSize4.png}
+      \includegraphics[width=0.7\textwidth]{renders/IpsByBucketSize4.png}
       \caption{Assigning IPs to Buckets with a Bucket Size of 4}
       \label{fig:exampleIpsByBucket4}
 \end{figure}
 
 As discussed, the bucket size will be an integral power of 2, but an important question is which integral power of 2. The algorithm starts by assigning the IPs to their buckets using a bucket size equal to the largest possible CIDR block that can be obtained for the given $t$. As discussed previously, this is the largest integral power of 2 that is less than or equal to $t$.
 
-At this point, the algorithm begins to take shape. Consider the situation represented in \reffig{fig:exampleIpsByBucket4} along with a value of $t = 4$. The initial bucket size will be 4 and the presence of a filled bucket ($1.1.1.0/30$) indicates that a CIDR block of the bucket size can be created. Since the bucket size is equal to the desired number of IPs, the optimal choice is the $1.1.1.0/30$ block. The algorithm can return this block and it will be the optimum set of addresses to choose, to minimize the number of characters in the SPF record.
+At this point, the algorithm begins to take shape. Consider the situation represented in \reffig{fig:exampleIpsByBucket4} along with a value of $t = 4$. The initial bucket size will be 4 and the presence of a filled bucket ($1.1.1.0/30$) indicates that a CIDR block of the bucket size can be created. Since the bucket size is equal to the desired number of IPs, the optimal choice is the $1.1.1.0/30$ block. The algorithm can return this block and it will be the optimum set of addresses to choose to minimize the number of CIDR entries required to represent the set of IP addresses.
 
 Next consider the situation represented in \reffig{fig:exampleIpsByBucket4} along with a value of $t = 6$. The initial bucket size will still be 4 (as this is the largest integral power of 2 less than or equal to $t$). Thus, the algorithm will again detect that the $1.1.1.0/30$ bucket is full and select this block of four IPs. However the algorithm must return a total of $t = 6$ IPs and therefore must select a further 2 IPs. The algorithm accomplishes this by making a recursive call. By removing all of the (so far) selected IPs from the set of available IPs (forming $S_a'$, the \textit{available} set for the next call) and setting the new value of $t$ to be the remaining number of IPs required ($t'$ = 2), a recursive call will simply find the best set of IPs from what is left. This is shown in \reffig{fig:exampleIpsByBucket2} in which the recursive call would return $1.1.1.4/31$ as this bucket is full. The selected IPs from each recursive call are then unioned, returning the optimum set of IPs - $\{1.1.1.0/30,\enspace1.1.1.4/31\}$
 
@@ -196,9 +196,9 @@ In the case of $t = 7$, the algorithm would proceed as before, with one extra re
 
 The final possibility to consider is what should be done when no buckets are filled. In this case, the algorithm should not select any IPs at this bucket size. Instead, it should reduce the bucket size to the next highest integral power of 2 and recurse, setting $t$ equal to this reduced bucket size. However, there is another important step, the need for which is best illustrated with an example. A diagram of this situation is shown in \reffig{fig:ipAlgTrickyCodePath}
 
-If the initial value for $t$ is 6, the initial bucket size will be 4. If no buckets of size 4 are filled, the algorithm will then recurse. Let this recursive call be denoted as $r_1'$, where $'$ indicates the depth of the recursion. Let the total number of IPs required that is used for this recursive call be denoted as $t_1'$. Thus, for $r_1'$, $t_1' = 2$ (the next largest integral power of 2 as discussed previously) and the set of available IPs is unchanged $S_{a_1}' = S_a$. Let the set of chosen IPs returned $r_1'$ call be denoted as $S_{c_1}'$.
+If the initial value for $t$ is 6, the initial bucket size will be 4. If no buckets of size 4 are filled, the algorithm will then recurse. Let this recursive call be denoted as $r_1'$, where $'$ indicates the depth of the recursion. Let the total number of IPs required for this recursive call $r_1'$ be denoted as $t_1'$. Thus, $t_1' = 2$ (the next largest integral power of 2 as discussed previously) and the set of available IPs is unchanged $S_{a_1}' = S_a$. Let the set of chosen IPs returned from $r_1'$ be denoted as $S_{c_1}'$.
 
-The initial call required 6 IPs to be returned, however $r_1'$ will return the 2 green IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{1.1.1.0,\enspace1.1.1.1\}$ in this case. Thus a second recursive call, $r_2'$ is required. This recursive call, $r_2'$ is \textbf{not} nested within the first recursive call $r_1'$, but rather is a sibling recursive call (it is at the same depth as $r_1'$).  Let the total number of IPs required that is used for $r_2'$ be denoted as $t_2'$. $t_2'$ is calculated using the formula given in \refeq{eq:secondRecurseT2}. This is simply the remaining number of IPs that need to be chosen after the first recursive call. In this case, $t_2' = 4$. 
+The initial call required 6 IPs to be returned and $r_1'$ will return the 2 green IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{1.1.1.0,\enspace1.1.1.1\}$. Thus a second recursive call, $r_2'$ is required. This recursive call, $r_2'$ is \textbf{not} nested within the first recursive call $r_1'$, but rather is a sibling recursive call (it is at the same depth as $r_1'$).  Let the total number of IPs required for $r_2'$ be denoted as $t_2'$. $t_2'$ is calculated using the formula given in \refeq{eq:secondRecurseT2}. This is simply the remaining number of IPs that need to be chosen after the first recursive call. In this case, $t_2' = 6 - 2 = 4$. 
 
 \begin{equation}\label{eq:secondRecurseT2}
 t_2' = t - t_1'
@@ -213,11 +213,11 @@ S_{a_2}' = S_a - S_{c_1}'
 \begin{figure}[H]
       \centering
       \includegraphics[width=\textwidth]{renders/IpAlgTrickyCodePath.png}
-      \caption{Code Path when Algorithm Does Not Find Full Bucket}
+      \caption{Code Path When Algorithm Does Not Find Full Bucket}
       \label{fig:ipAlgTrickyCodePath}
 \end{figure}
 
-The second recursive call, $r_2'$ (as described above), will then look for IPs using a bucket size of 4. Again, none will be found. Thus the algorithm will need to recurse again. Let this call be denoted $r_1''$. The bucket size for $r_1''$ will be 2 (the next highest integral power of 2). Thus, $r_1''$ will find the 2 IPs shown in orange in \reffig{fig:ipAlgTrickyCodePath}, $\{2.2.2.0,\enspace2.2.2.1\}$. However the second recursive call $r_2'$ required a total of 4 IPs and only 2 have been selected. Thus just as in the first case, a sibling recursive call, $r_2''$ is required to choose the remaining IPs. Thus $r_2''$ will require two more IPs to be chosen and will return the blue set of IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{3.3.3.0,\enspace3.3.3.1\}$. The union of the results of $r_1''$ and $r_2''$ will be returned to $r_2'$ and will contain the required 4 IPs, $\{1.1.1.0/31,\enspace2.2.2.0/31\}$. Finally the result of $r_1'$ and $r_2'$ will be unioned, returning the desired 6 IPs, $\{1.1.1.0/31,\enspace2.2.2.0/31,\enspace3.3.3.0/31\}$.
+The second recursive call, $r_2'$ (as described above), will then look for IPs using a bucket size of 4. Again, none will be found. Thus the algorithm will need to recurse again. Let this call be denoted $r_1''$. The bucket size for $r_1''$ will be 2 (the next highest integral power of 2). Thus, $r_1''$ will find the 2 IPs shown in orange in \reffig{fig:ipAlgTrickyCodePath}, $\{2.2.2.0,\enspace2.2.2.1\}$. However the second recursive call $r_2'$ required a total of 4 IPs and only 2 have been selected. Thus just as in the first case, a sibling recursive call, $r_2''$ is required to choose the remaining IPs. Thus $r_2''$ will require two more IPs to be chosen and will return the blue set of IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{3.3.3.0,\enspace3.3.3.1\}$. The union of the results of $r_1''$ and $r_2''$ will be returned to $r_2'$ and will contain the required 4 IPs, $\{2.2.2.0/31,\enspace3.3.3.0/31\}$. Finally the result of $r_1'$ and $r_2'$ will be unioned, returning the desired 6 IPs, $\{1.1.1.0/31,\enspace2.2.2.0/31,\enspace3.3.3.0/31\}$.
 
 Now that all cases have been considered, the steps of the algorithm (for the simplified case of having no existing IPs) are shown below:
 \begin{itemize}
@@ -233,7 +233,7 @@ Now that all cases have been considered, the steps of the algorithm (for the sim
 \item{Otherwise}
   \begin{itemize}
   \item{Recurse ($r_1'$) using next biggest integral power of 2 and the initial set of available IPs}
-  \item{Recurse again ($r_2'$) using the remaining number of IPs required and the set of available IPs, excluding those returned from ($r_1'$)}
+  \item{Recurse again ($r_2'$) using the remaining number of IPs required and the set of available IPs, excluding those returned from $r_1'$ ($S_{c_1}'$)}
   \item{Return the union of the results of the two recursive calls.}
   \end{itemize}
 \end{itemize}
@@ -254,12 +254,12 @@ The main changes to the algorithm are the following:
 
 \begin{itemize}
   \item{Assign the existing IPs ($S_e$) to buckets using the provided bucket size}
-  \item{(separately) Assign the available IPs ($S_a$) to buckets using the provided bucket size}
+  \item{Assign the available IPs ($S_a$) to separate buckets using the provided bucket size}
   \item{For each of the \textit{existing} IP buckets $S_{e_i}$}
       \begin{itemize}
       \item{Calculate $b^*_i$, the number of IPs required to fill the bucket (\refeq{eq:ipsToFillBucket})}
       \item{If the number of IPs in the corresponding \textit{available} IP bucket ($S_{a_i}$) equals $b^*_i$, the union of the two buckets creates a CIDR block and should be added to the currently chosen set of IPs ($S_c$), as long as it doesn't cause $|S_c|$ to become larger than the total number of desired IPs, $t$}
-      \item{If the size of $S_c$ is now equal to $t$ (the total number of IPs required), $S_c$ can be returned.}
+      \item{If $|S_c|$ is now equal to $t$ (the total number of IPs required), $S_c$ can be returned.}
       \item{Otherwise, recurse (see below)}
       \end{itemize}
 \end{itemize}
@@ -270,9 +270,11 @@ b^*_i= b-|S_{e_i}|
 \end{equation}
 
 
-This shows that the only logical change is that the number of IPs required to fill the existing IP buckets should be examined, rather than searching for full buckets from the available pool. 
+This shows that the only logical change is that the number of IPs required to \textit{fill the existing IP buckets} should be examined, rather than searching for full buckets from the available pool. 
 
-As with the simplified case, this method may require some recursion after the above steps. The recursive call in this case is actually simpler, but depends on the current state of the algorithm. As previously mentioned, all of the IPs in the existing set should be contained in the final set. If the algorithm reaches a state where all of the existing IPs have been used, but there is still a number of IPs to be selected, the algorithm can simply fallback to the previous case where $S_e = \{\}$. Otherwise, the algorithm recurses using the remaining available IPs, the remaining \textit{required} IPs (this is the set of existing IPs that have not yet been used), the remaining number of IPs required to be chosen and the next bucket size to use which is one less than the current bucket size.
+As with the simplified case, this method may require some recursion after the above steps. The recursive call in this case is actually simpler, but depends on the current state of the algorithm. As previously mentioned, all of the IPs in the existing set should be contained in the final set. If the algorithm reaches a state where all of the existing IPs have been used, but there is still a number of IPs to be selected, the algorithm can simply fallback to the previous case where $S_e = \{\}$. 
+
+Otherwise, the algorithm recurses using the remaining available IPs, the remaining \textit{required} IPs (this is the set of existing IPs that have not yet been chosen), the remaining number of IPs to be chosen and the next bucket size to use which is the next largest integral power of 2.
 
 Consider the following example as shown in \reffig{fig:ipsByBucketExisting4}.
 \begin{itemize}
@@ -292,25 +294,26 @@ The algorithm would then proceed in the following manner:
 \end{itemize}
 \begin{itemize}
 \item{Calculate $b_i^*$ for $2.2.2.0/30$ as per \refeq{eq:ipsToFillBucket}, also yielding 3}
-\item{Skip $2.2.2.0/30$ as $b^*_i > |S_{a_i}|$ ($3 > 2$)}    
+\item{Skip $2.2.2.0/30$ as $b^*_i > |S_{a_i}|$ ($3 > 2$)}   
 \end{itemize}
 \end{itemize}
 
 \begin{figure}[H]
       \centering
       \includegraphics[width=0.8\textwidth]{renders/IpsByBucketSize4Existing.png}
-      \caption{Available and Existing IPs Assigned to Buckets of size 4}
+      \caption{Available and Existing IPs Assigned to Buckets of Size 4}
       \label{fig:ipsByBucketExisting4}
 \end{figure}
 
 Since the total number of IPs required was $t = 7$ and only 4 IPs have been selected, a recursive call is required. As there are still some existing IPs that have not been included, a recursive call is made with the following parameters:
 \begin{itemize}
-\item{$S'_e = \{2.2.2.0\}$ - the remaining \textit{text}{required} IPs that have not yet been chosen}
+\item{$S'_e = \{2.2.2.0\}$ - the remaining \textit{required} IPs that have not yet been chosen}
 \item{$S'_a = \{2.2.2.1,\enspace2.2.2.2\}$ - the remaining \textit{available} IPs}
 \item{$t' = 3$ - the remaining \textit{number} of IPs to be selected}
+\item{$b' = 2$ - the bucket size should be the next largest integral power of 2 (was 4)}
 \end{itemize}
 
-As $t'=3$, the next bucket size will be $b' = 2$ (the highest integral power of 2 less than or equal to $t'$). Thus, the IPs will be assigned to buckets of size 2, as shown in \reffig{fig:ipsByBucketExisting2}.
+Thus, the IPs will be assigned to buckets of size 2, as shown in \reffig{fig:ipsByBucketExisting2}.
 
 The algorithm will then proceed as follows:
 \begin{itemize}
@@ -325,11 +328,11 @@ The algorithm will then proceed as follows:
 \begin{figure}[H]
       \centering
       \includegraphics[width=0.8\textwidth]{renders/IpsByBucketSize2Existing.png}
-      \caption{Remaining Available and Existing IPs Assigned to Buckets of size 2}
+      \caption{Remaining Available and Existing IPs Assigned to Buckets of Size 2}
       \label{fig:ipsByBucketExisting2}
 \end{figure}
 
-Finally since a total of 7 IPs were required and 6 were selected, a final recursive call is required. However all of the existing IPs are now included in $S_c$, meaning the existing IPs argument for the next recursive call will empty. This means the algorithm falls back to the simple case as described earlier and will choose a random final IP ($2.2.2.2$ in this case). 
+Finally since a total of 7 IPs were required and 6 have now been selected, a final recursive call is required. However all of the existing IPs have now been chosen, meaning the existing IPs argument for the next recursive call will empty. This means the algorithm falls back to the simple case as described earlier and will choose a random final IP ($2.2.2.2$ in this case). 
 
 There are two enhancements that can be made to the algorithm at this point.
 
@@ -337,6 +340,8 @@ There are two enhancements that can be made to the algorithm at this point.
 \item{A better method for choosing a \textbf{single} IP from the available IP pool. This should not be done randomly as this could result in large CIDR blocks contained in the available IP pool being broken up unnecessarily. This is described in \refapp{appendix:smartSingleIP}.}
 \item{In the case where the existing set of IPs ($S_e$) is non empty, the previously described method of choosing the highest integral power of 2 that is less than or equal to $t$ for the initial bucket size is not ideal. Given a set of 2 IPs and requiring a total of 4 IPs, the approach would suggest starting with a bucket size of 4. However unless the existing IPs themselves are contiguous, there is no possibility of forming a CIDR block of size 4. This is described in detail in \refapp{appendix:smartInitBucket}.}
 \end{enumerate}
+
+Finally, the entire source code for the algorithm can be found in \refapp{appendix:cidrMinSource}
 
 \break
 
@@ -390,7 +395,7 @@ These tests were sufficient for the simple case where $S_e = \{\}$ and the algor
 \item{The algorithm should always return the correct number of IPs and contain all of the existing IPs}
       \begin{itemize}
       \item{This test was an important test as the algorithm would be useless if it minimized CIDR blocks but didn't guarantee that all of the existing IPs would be present in the resulting set}
-      \item{This test was implemented by allowing a variable $i$ to take on values from $1$ to $|S_a|$ and by setting $t = S_e + i$.}
+      \item{This test was implemented by allowing a variable $i$ to take on values from $1$ to $|S_a|$ and by setting $t = |S_e| + i$.}
       \item{This essentially repeatedly runs the algorithm, requesting each possible value from the minimum number of new IPs (1), to the maximum number of new IPs (the number of available IPs)}
       \item{At each iteration, the returned set was checked to ensure the correct number of IPs was returned and that all of the existing IPs were contained in that set.}
       \end{itemize}
@@ -398,7 +403,7 @@ These tests were sufficient for the simple case where $S_e = \{\}$ and the algor
       \begin{itemize}
       \item{This was tested by requesting a total of 2 IPs and setting $S_e = \{1.1.1.3\}$}
       \item{This tested that the algorithm would find CIDR blocks below the existing IPs provided}
-      \item{The returned set should be $1.1.1.2/31$, indicating the algorithm correctly searches below the provided existing IPs}
+      \item{The algorithm should return $1.1.1.2/31$, indicating it correctly searches below the provided existing IPs}
       \item{A similar test was written where $S_e = {1.1.1.2}$ and the algorithm correctly returned $1.1.1.2/31$ indicating that it also looks above the provided existing IP addresses for CIDR blocks}
       \end{itemize}
 \item{The algorithm should find CIDR blocks with existing IP addresses that cause a single IP to be left over}

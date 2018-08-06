@@ -1,6 +1,7 @@
 public class Button {
     private Consumer<String> onClickConsumer;
     private String buttonName;
+    
     public Button(Consumer<String> onClickConsumer,
                   String buttonName) {
         this.onClickConsumer = onClickConsumer;

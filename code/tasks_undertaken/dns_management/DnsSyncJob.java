@@ -6,7 +6,7 @@ public class DnsSyncJob extends AbstractJob {
   @Inject
   public DnsSyncJob(AccountsDao accountsDao,
                     DnsSyncJobHelper dnsSyncJobHelper,
-                    DnsClientHelper dnsClientHelper,) {
+                    DnsClientHelper dnsClientHelper) {
     this.accountsDao = accountsDao;
     this.dnsSyncJobHelper = dnsSyncJobHelper;
     this.dnsClientHelper = dnsClientHelper;
@@ -15,7 +15,7 @@ public class DnsSyncJob extends AbstractJob {
   @Override
   public void run() {
     Collection<Account> accountsToSync = accountsDao.getAllAccounts();
-    syncDnsForEntities(accountsToSync, UPDATED_ACCOUNT_COUNTER);
+    syncDnsForEntities(accountsToSync);
 
     // Similar code for Ip addresses and other entities..
   }
