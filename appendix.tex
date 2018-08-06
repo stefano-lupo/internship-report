@@ -35,7 +35,7 @@ The previously described method for choosing the initial bucket size was choosin
 
 For example, given $S_e = \{1.1.1.0, 2.2.2.0\}$ and $t = 4$ the algorithm must choose two IPs ($n = 2$). The described method would suggest starting with a bucket size of $b=4$. However it would be impossible to generate a CIDR block of size 4 given the existing IPs and a choice of only two IPs, \textbf{regardless of the available IPs}. 
 
-This extension is handled by a seperate function which is called prior to starting the algorithm, to determine the appropriate starting bucket size. This function only requires the total number of IPs desired ($t$) and the existing set of IPs ($S_e$) as parameters. 
+This extension is handled by a separate function which is called prior to starting the algorithm, to determine the appropriate starting bucket size. This function only requires the total number of IPs desired ($t$) and the existing set of IPs ($S_e$) as parameters. 
 
 The function starts by assigning IPs to buckets using the largest integral power of 2 less than or equal to $t$ rule. It then calculates $n$ (the number of IPs that need to be chosen from the available pool) and checks if any of the existing buckets require \textbf{$n$ or less} IPs to be filled. As only $n$ IPs can be selected, if no buckets can be \textit{filled} by selecting $n$ IPs, there is no possibility of creating CIDR blocks at this bucket size. This is done without considering the available IPs. Thus even if a bucket \textit{could} be filled by choosing $n$ IPs, it may not be. If no buckets can be filled choosing $n$ IPs, the function recurses, checking the next largest bucket size. Otherwise, the function returns the current bucket size.
 
