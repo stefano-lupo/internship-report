@@ -30,9 +30,9 @@ This allows IPs that \textit{may} form CIDR blocks to be kept available for case
 
 The code for the function is shown in \refcode{lst:singleAwkIp}
 
-\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
+\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits1}}
 
-\begin{equation}\label{eq:bucketSizeHostBits}
+\begin{equation}\label{eq:bucketSizeHostBits1}
 bucketSize = 2^{numHostBits}
 \end{equation}
 \vfill
@@ -54,9 +54,9 @@ This extension is handled by a separate function which is called prior to starti
 
 The function starts by assigning IPs to buckets using the largest integral power of 2 less than or equal to $t$ rule. It then calculates $n$ (the number of IPs that need to be chosen from the available pool) and checks if any of the existing buckets require \textbf{$n$ or less} IPs to be filled. As only $n$ or less IPs can be selected, if no buckets can be \textit{filled} by selecting $n$ or less IPs, there is no possibility of creating CIDR blocks at this bucket size. This is done without considering the available IPs. Thus, even if a bucket \textit{could} be filled by choosing $n$ IPs, it may not be. If no buckets can be filled choosing $n$ or less IPs, the loop continues, checking the next largest bucket size. Otherwise, the function returns the current bucket size.
 
-\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
+\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits2}}
 
-\begin{equation}\label{eq:bucketSizeHostBits}
+\begin{equation}\label{eq:bucketSizeHostBits2}
 bucketSize = 2^{numHostBits}
 \end{equation}
 
