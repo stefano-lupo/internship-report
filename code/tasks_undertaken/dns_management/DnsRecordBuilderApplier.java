@@ -16,19 +16,9 @@ public <T> List<DnsConfiguration> buildHubSpotDnsRecordUpdatesForZones(T entity)
 }
 
 private <T> Set<DnsRecordBuilder<T>> getDnsRecordBuildersToApplyOrThrow(T entity) {
-  if (entity instanceof Account) {
-    return accountRecordBuilders.stream()
-        .map(accountDnsRecordBuilder -> (DnsRecordBuilder<T>) accountDnsRecordBuilder)
-        .collect(Collectors.toSet());
-  } else if (entity instanceof IpAddress) {
-    return ipRecordBuilders.stream()
-        .map(ipAddressDnsRecordBuilder -> (DnsRecordBuilder<T>) ipAddressDnsRecordBuilder)
-        .collect(Collectors.toSet());
-  } else if (entity instanceof Integer) {
-    return portalDnsRecordBuilders.stream()
-        .map(portalDnsRecordBuilder -> (DnsRecordBuilder<T>) portalDnsRecordBuilder)
-        .collect(Collectors.toSet());
-  } else {
+  if (!recordBuildersByClass.contains(entity.getClass())) {
     throw new IllegalArgumentException(String.format("Invalid type given: %s", entity.getClass()));
   }
+  
+  return recordBuildersByClass.get(entity.getClass());
 }
