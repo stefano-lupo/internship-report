@@ -196,30 +196,32 @@ In the case of $t = 7$, the algorithm would proceed as before, with one extra re
 
 The final possibility to consider is what should be done when no buckets are filled. In this case, the algorithm should not select any IPs at this bucket size. Instead, it should reduce the bucket size to the next highest integral power of 2 and recurse, setting $t$ equal to this reduced bucket size. However, there is another important step, the need for which is best illustrated with an example. A diagram of this situation is shown in \reffig{fig:ipAlgTrickyCodePath}
 
-If the initial value for $t$ is 6, the initial bucket size will be 4. If no buckets of size 4 are filled, the algorithm will then recurse. Let the total number of IPs required that is used for this recursive call be denoted as $t_1'$. Thus, for the recursive call, $t_1' = 2$ (the next largest integral power of 2 as discussed previously) and the set of available IPs is unchanged $S_{a_1} = S_a$. Let the set of chosen IPs returned from this first recursive call be denoted as $S_{c_1}$.
+If the initial value for $t$ is 6, the initial bucket size will be 4. If no buckets of size 4 are filled, the algorithm will then recurse. Let this recursive call be denoted as $r_1'$, where $'$ indicates the depth of the recursion. Let the total number of IPs required that is used for this recursive call be denoted as $t_1'$. Thus, for $r_1'$, $t_1' = 2$ (the next largest integral power of 2 as discussed previously) and the set of available IPs is unchanged $S_{a_1}' = S_a$. Let the set of chosen IPs returned $r_1'$ call be denoted as $S_{c_1}'$.
 
-The initial call required 6 IPs to be returned, however this first recursive call will return 2 IPs that should be used, $\{1.1.1.0,\enspace1.1.1.1\}$ in this case. Thus a second recursive call is required. Let the total number of IPs required that is used for this second recursive call be denoted as $t_2'$. $t_2'$ is calculated using the formula given in \refeq{eq:secondRecurseT2}. This is simply the remaining number of IPs that need to be chosen after the first recursive call. In this case, $t_2' = 4$. 
+The initial call required 6 IPs to be returned, however $r_1'$ will return the 2 green IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{1.1.1.0,\enspace1.1.1.1\}$ in this case. Thus a second recursive call, $r_2'$ is required. This recursive call, $r_2'$ is \textbf{not} nested within the first recursive call $r_1'$, but rather is a sibling recursive call (it is at the same depth as $r_1'$).  Let the total number of IPs required that is used for $r_2'$ be denoted as $t_2'$. $t_2'$ is calculated using the formula given in \refeq{eq:secondRecurseT2}. This is simply the remaining number of IPs that need to be chosen after the first recursive call. In this case, $t_2' = 4$. 
 
 \begin{equation}\label{eq:secondRecurseT2}
 t_2' = t - t_1'
 \end{equation}
 
-Finally, the set of available IPs that is used for the second recursive call ($S_{a_2}$) is given by \refeq{eq:availableIpsSecondRecurse}. This is the initial set of all available IPs, with the IPs chosen from the first recursive call omitted.
+The set of available IPs that is used for $r_2'$, $S_{a_2}'$, is given by \refeq{eq:availableIpsSecondRecurse}. This is the initial set of all available IPs, with the IPs chosen from the first recursive call omitted. Let the set of IPs returned from $r_2'$ be denoted as $S_{c_2}'$.
 
 \begin{equation}\label{eq:availableIpsSecondRecurse}
-S_{a_2} = S_a - S_{c_1}
+S_{a_2}' = S_a - S_{c_1}'
 \end{equation}
 
 \begin{figure}[H]
       \centering
-      \includegraphics[width=0.8\textwidth]{renders/IpAlgTrickyCodePath.png}
+      \includegraphics[width=\textwidth]{renders/IpAlgTrickyCodePath.png}
       \caption{Code Path when Algorithm Does Not Find Full Bucket}
       \label{fig:ipAlgTrickyCodePath}
 \end{figure}
 
-The steps of the algorithm (for the simplified case of having no existing IPs) are shown below:
+The second recursive call, $r_2'$ (as described above), will then look for IPs using a bucket size of 4. Again, none will be found. Thus the algorithm will need to recurse again. Let this call be denoted $r_1''$. The bucket size for $r_1''$ will be 2 (the next highest integral power of 2). Thus, $r_1''$ will find the 2 IPs shown in orange in \reffig{fig:ipAlgTrickyCodePath}, $\{2.2.2.0,\enspace2.2.2.1\}$. However the second recurive call $r_2'$ required a total of 4 IPs and only 2 have been selected. Thus just as in the first case, a sibling recursive call, $r_2''$ is required to choose the remaining IPs. Thus $r_2''$ will require two more IPs to be chosen and will return the blue set of IPs shown in \reffig{fig:ipAlgTrickyCodePath}, $\{3.3.3.0,\enspace3.3.3.1\}$. The union of the results of $r_1''$ and $r_2''$ will be returned to $r_2'$ and will contain the required 4 IPs, $\{1.1.1.0/31,\enspace2.2.2.0/31\}$. Finally the result of $r_1'$ and $r_2'$ will be unioned, returning the desired 6 IPs, $\{1.1.1.0/31,\enspace2.2.2.0/31,\enspace3.3.3.0/31\}$.
+
+Now that all cases have been considered, the steps of the algorithm (for the simplified case of having no existing IPs) are shown below:
 \begin{itemize}
-\item{Set bucket size to be largest integral power of 2 that is less than $t$}
+\item{Set bucket size to be largest integral power of 2 that is less than or equal to $t$}
 \item{Assign all available IPs into buckets using the calculated bucket size}
 \item{If a bucket is full}
   \begin{itemize}
@@ -230,8 +232,8 @@ The steps of the algorithm (for the simplified case of having no existing IPs) a
   \end{itemize}
 \item{Otherwise}
   \begin{itemize}
-  \item{Recurse using next biggest integral power of 2 and the initial set of available IPs}
-  \item{Recurse using the remaining number of IPs required and the set of available IPs, excluding those returned from the previous recursive call}
+  \item{Recurse ($r_1'$) using next biggest integral power of 2 and the initial set of available IPs}
+  \item{Recurse again ($r_2'$) using the remaining number of IPs required and the set of available IPs, excluding those returned from ($r_1'$)}
   \item{Return the union of the results of the two recursive calls.}
   \end{itemize}
 \end{itemize}
@@ -239,7 +241,7 @@ The steps of the algorithm (for the simplified case of having no existing IPs) a
 \subsection{Extending the Algorithm to Support Existing IPs}
 Now that a solution to the simplified problem where $S_e = \{\}$ has been formed, the more complex initial problem could now be tackled. However upon closer inspection, there is only one extra point to consider when the set of existing IPs is non empty: \textbf{the final set must be a super set of the set of existing IPs}. 
 
-The algorithm now requires the following arguments:
+The extended algorithm's parameters are changed to the following to aid in the recursion:
 
 \begin{itemize}
 \item{A list of available IPs - $S_a$}
@@ -256,8 +258,9 @@ The main changes to the algorithm are the following:
   \item{For each of the \textit{existing} IP buckets $S_{e_i}$}
       \begin{itemize}
       \item{Calculate $b^*_i$, the number of IPs required to fill the bucket (\refeq{eq:ipsToFillBucket})}
-      \item{If the number of IPs in the corresponding \textit{available} IP bucket ($S_{a_i}$) equals $b^*_i$, the union of the two buckets creates a CIDR block and should be added to the currently chosen set of IPs ($S_c$), as long as it doesn't $|S_c|$ to become larger than the total number of desired IPs, $t$}
+      \item{If the number of IPs in the corresponding \textit{available} IP bucket ($S_{a_i}$) equals $b^*_i$, the union of the two buckets creates a CIDR block and should be added to the currently chosen set of IPs ($S_c$), as long as it doesn't cause $|S_c|$ to become larger than the total number of desired IPs, $t$}
       \item{If the size of $S_c$ is now equal to $t$ (the total number of IPs required), $S_c$ can be returned.}
+      \item{Otherwise, recurse (see below)}
       \end{itemize}
 \end{itemize}
 
@@ -273,8 +276,8 @@ As with the simplified case, this method may require some recursion after the ab
 
 Consider the following example as shown in \reffig{fig:ipsByBucketExisting4}.
 \begin{itemize}
-\item{$S_e = \{1.1.1.0, 2.2.2.0\}$}
-\item{$S_a = \{1.1.1.1, 1.1.1.2, 1.1.1.3, 2.2.2.1, 2.2.2.2\}$}
+\item{$S_e = \{1.1.1.0,\enspace2.2.2.0\}$}
+\item{$S_a = \{1.1.1.1,\enspace1.1.1.2,\enspace1.1.1.3,\enspace2.2.2.1,\enspace2.2.2.2\}$}
 \item{$t = 7$}
 \end{itemize}
 
@@ -282,7 +285,7 @@ As $t = 7$, the initial bucket size $b$ would be 4 and the IPs would be assigned
 
 The algorithm would then proceed in the following manner:
 \begin{itemize}
-\item{Examine each existing ($S_{e_i}$) and available ($S_{a_i}$) IP buckets in pairs}
+\item{Examine each existing bucket ($S_{e_i}$) and the corresponding available bucket ($S_{a_i}$)}
 \begin{itemize}
 \item{Calculate $b_i^*$ for $1.1.1.0/30$ as per \refeq{eq:ipsToFillBucket}, yielding 3}
 \item{Add $1.1.1.0/30$ to $S_c$ as $b^*_i = |S_{a_i}| = 3$}
@@ -302,19 +305,20 @@ The algorithm would then proceed in the following manner:
 
 Since the total number of IPs required was $t = 7$ and only 4 IPs have been selected, a recursive call is required. As there are still some existing IPs that have not been included, a recursive call is made with the following parameters:
 \begin{itemize}
-\item{$S'_e = \{2.2.2.0\}$}
-\item{$S'_a = \{2.2.2.1, 2.2.2.2\}$}
-\item{$t' = 3$}
+\item{$S'_e = \{2.2.2.0\}$ - the remaining \textit{text}{required} IPs that have not yet been chosen}
+\item{$S'_a = \{2.2.2.1,\enspace2.2.2.2\}$ - the remaining \textit{available} IPs}
+\item{$t' = 3$ - the remaining \textit{number} of IPs to be selected}
 \end{itemize}
 
-As $t'=3$, the next bucket size will be $b' = 2$ (the highest integral power of 2 smaller than $t'$). Thus, the IPs will be assigned to buckets of size 2, as shown in \reffig{fig:ipsByBucketExisting2}.
+As $t'=3$, the next bucket size will be $b' = 2$ (the highest integral power of 2 less than or equal to $t'$). Thus, the IPs will be assigned to buckets of size 2, as shown in \reffig{fig:ipsByBucketExisting2}.
 
 The algorithm will then proceed as follows:
 \begin{itemize}
-\item{Examine the remaining existing ($S'_{e_i}$) and available ($S'_{a_i}$) IP buckets in pairs}
+\item{Examine each existing bucket ($S_{e_i}'$) and the corresponding available bucket ($S_{a_i}'$)}
 \begin{itemize}
 \item{Calculate $b*'_i$ for $2.2.2.0/31$ as per \refeq{eq:ipsToFillBucket}, yielding 1}
-\item{Add $2.2.2.0/31$ to $S_c$ as $b*'_i = |S'_{a_i}| = 1$} 
+\item{Add $2.2.2.0/31$ to $S_c'$ as $b*'_i = |S'_{a_i}| = 1$} 
+\item{Skip $2.2.2.2/31$ as $b*'_i > |S'_{a_i}| (2 > 1)$}
 \end{itemize}
 \end{itemize}
 
@@ -329,7 +333,7 @@ Finally since a total of 7 IPs were required and 6 were selected, a final recurs
 
 There are two enhancements that can be made to the algorithm at this point. The first is a better method for choosing a single IP from the available IP pool. Ideally, the algorithm should choose an \textit{awkward} IP that does not have any free neighboring IPs. Otherwise, the algorithm may break up valuable CIDR blocks by choosing randomly. This is described in \refapp{appendix:smartSingleIP}. 
 
-The other enhancement applies only to the case where the existing set of IPs is non empty. The previously described method of choosing the highest integral power of 2 that is less than $t$ for the initial bucket size only makes sense for the case $S_e = \{\}$. For example, given $S_e = \{1.1.1.0, 2.2.2.0\}$ and $t = 4$, the algorithm must choose two IPs. The described method would suggest starting with a bucket size of $b=4$. However it would be impossible to generate a CIDR block of size 4 given the existing IPs and a choice of only two IPs. An extension to the algorithm to handle choosing the optimum starting bucket size is outlined in \refapp{appendix:smartInitBucket}. 
+The other enhancement applies only to the case where the existing set of IPs is non empty. The previously described method of choosing the highest integral power of 2 that is less than or equal to $t$ for the initial bucket size only makes sense for the case $S_e = \{\}$. For example, given $S_e = \{1.1.1.0, 2.2.2.0\}$ and $t = 4$, the algorithm must choose two IPs. The described method would suggest starting with a bucket size of $b=4$. However it would be impossible to generate a CIDR block of size 4 given the existing IPs and a choice of only two IPs. An extension to the algorithm to handle choosing the optimum starting bucket size is outlined in \refapp{appendix:smartInitBucket}. 
 
 Finally, the source code for the algorithm is given in \refapp{appendix:algSourceCode}
 
@@ -342,8 +346,8 @@ As a starting point, the following sets of IPs were chosen for the default state
 
 \begin{equation}\label{eq:initialState}
 \begin{gathered}
-S_a = \{1.1.1.2, 1.1.1.3, 1.1.1.4, 1.1.1.5, 1.1.1.6, 1.1.1.7, 1.1.1.8, 1.1.1.9\} \\
-S_e = \{1.1.1.0, 1.1.1.1\}
+S_a = \{1.1.1.2,\enspace1.1.1.3,\enspace1.1.1.4,\enspace1.1.1.5,\enspace1.1.1.6,\enspace1.1.1.7,\enspace1.1.1.8,\enspace1.1.1.9\} \\
+S_e = \{1.1.1.0,\enspace1.1.1.1\}
 \end{gathered}
 \end{equation}
 
@@ -363,12 +367,12 @@ Initially however, tests were written for the simplified case where $S_e = \{\}$
 \item{The algorithm should find contiguous IPs recursively}
       \begin{itemize}
       \item{This was tested by requesting that 6 IPs be selected from $S_a$}
-      \item{The resulting set should contain the block of 4 IP addresses ($1.1.1.4/30$) as before, but should critically select the $1.1.1.2/31$ block for the remaining 2 IP addresses}
+      \item{The resulting set should contain the block of 4 IP addresses ($1.1.1.4/30$) as before, but should also select the $1.1.1.2/31$ block for the remaining 2 IP addresses}
       \item{This test was sufficient to assume the algorithm would recursively select CIDR blocks at lower block sizes when available}
       \end{itemize}
 \item{The algorithm should always return the correct number of IP addresses}
       \begin{itemize}
-      \item{This test was implemented by repeatedly invoking the algorithm with $t$ running from $1$ to $|S_a|$}
+      \item{This test was implemented by repeatedly invoking the algorithm with $t$ running from $1$ to $|S_a|$ and ensuring $|S_c| = t \enspace \forall \enspace t$}
       \end{itemize}
 \end{itemize}
 
@@ -403,13 +407,29 @@ These tests were sufficient for the simple case where $S_e = \{\}$ and the algor
       \begin{itemize}
       \item{It is essentially impossible to break up a CIDR block contained inside the set of existing IP addresses, but this test was added to ensure the algorithm correctly identified existing CIDR blocks appropriately.}
       \item{A set of existing IPs $S_e = \{2.2.2.0/31\}$ was used along with an the available set of IPs listed in \refeq{eq:initialState} and a total of 4 IPs were requested.}
-      \item{The algorithm correctly returned the existing CIDR block as well as another CIDR block of size 2, yielding $\{1.1.1.2/31, 2.2.2.0/31\}$}
+      \item{The algorithm correctly returned the existing CIDR block as well as another CIDR block of size 2, yielding $\{1.1.1.2/31,\enspace2.2.2.0/31\}$}
+      \item{This ensured the algorithm selected the existing block of 2 as well as another block of 2, instead of selecting a block of 4 by excluding existing IPs}
       \end{itemize}
 \item{The algorithm should handle existing IPs which don't contribute to any CIDR blocks and should fill the remaining number of IPs required with the best CIDR block from the available set of IPs}
       \begin{itemize}
-      \item{This was tested by setting $S_e = \{2.2.2.0, 3.3.3.0, 4.4.4.0\}$}, using the set of available IPs shown in \refeq{eq:initialState} and requesting 5 IPs.
+      \item{This was tested by setting $S_e = \{2.2.2.0,\enspace3.3.3.0,\enspace4.4.4.0\}$}, using the set of available IPs shown in \refeq{eq:initialState} and requesting 5 IPs.
       \item{The algorithm should then return the three existing IPs along with a CIDR block of size 2 from the set of available IPs}
       \end{itemize}
 \end{itemize}
 
 These tests provided a sufficient amount of coverage to provide confidence in the algorithm and its implementation. Several other tests were implemented which were less specific to the algorithm (such as ensuring user input was validated). The algorithm has been running in a production environment for over 3 months and has helped automate an important step that was previously being performed manually by a support team at HubSpot.   
+
+\section{Abstracting Upstream Email Sending to Kafka}
+While discussing Kafka in \refsec{sec:kafka}, an idealised case of having all emails that need to be sent through HubSpot simply placed on a Kafka topic was shown. This functionality is supported for emails that can be sent through HubSpot's internal Mail Transfer Agent (MTA) (see \refsec{sec:emailSendingInfra} for more details), but is not supported for emails using other third party MTAs. The reason for this was HubSpot's email marketing was initially built using third party MTAs, prior to the development of the internal MTA. Prior to this task, email sent through third party MTAs was done \textit{in-process}, inside of an upstream email team's deployable, as all of this code was written prior to the formation of the \team{} team. This code is entirely to do with email sending and thus should certainly be owned and controlled by the \team{} team. It also adds a considerable amount of latency to the upstream email team's code, as they must wait for the results of email sends. 
+
+The main goal of this task was to decouple the email sending code from the upstream teams deployable. Kafka was the perfect choice to use as the interface between the two teams and the desired setup was for the upstream team to produce the emails to be sent to a given Kafka topic, for those emails to be sent by the \team{} team's Kafka consumers and for the results of the email send to be produced back to the upstream email team through a second Kafka topic.
+
+The major difficulty associated with rewriting the code in this way was that the results of the email send were no longer obtainable in-process of the upstream teams deployable. The email sending would essentially happen asynchronously and the results would be present in a \textbf{different} deployable. Ultimately this is the exact behaviour that is desired as the process producing these emails to Kafka should be able to \textit{"fire and forget"} - once it has produced the email to Kafka, it has done it's job.
+
+This task was essentially two tasks which were entirely dependent on one and other. One of these tasks was creating the infrastructure required on the \team{} team's side of things and the other was making use of this infrastructure on the upstream email team's side of things.
+\break
+
+\subsection{The \team{} Side}
+This task required the creation of an entirely new project owned by the \team{} team. This project would now contain all of the code required for sending the emails to both the internal MTA and the third party MTAs. This required substantial research into setting up and configuring Kafka and setting up a project on the HubSpot stack.
+
+The main difficulty associated with this task was implementing the solution in a \textit{backwards compatible} way.  
