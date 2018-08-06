@@ -24,13 +24,13 @@
 \label{appendix:smartSingleIP}
 When selecting a single IP from the available pool, ideally, the algorithm should choose an \textit{awkward} IP that does not have any free neighboring IPs. Otherwise, the algorithm may break up valuable CIDR blocks by choosing randomly. 
 
-This enhancement to the algorithm was added by examining the set of available IPs and attempting to find a bucket containing a single IP. A list of IPs denotes as the \java{remainingIps} is initialized to contain the same IPs as the \java{availableIps} set. An initial bucket size was defined and the available IPs were assigned to buckets at this size. The bucket with the smallest number of IPs was then selected. If the number of IPs in this bucket was 1, this IP would be returned. Otherwise, the \java{remainingIps} list was set to the IPs in this bucket and the process would be repeated with a smaller bucket size. 
+This enhancement to the algorithm was added by examining the set of available IPs and attempting to find a bucket containing a single IP. A list of IPs denoted as \java{remainingIps} is initialized to contain the same IPs as the \java{availableIps} set. An initial bucket size was defined and the available IPs were assigned to buckets at this size. The bucket with the smallest number of IPs was then selected. If the number of IPs in this bucket was 1, this IP would be returned. Otherwise, the \java{remainingIps} list was set to the IPs in this bucket and the process would be repeated with a smaller bucket size. 
 
 This allows IPs that \textit{may} form CIDR blocks to be kept available for cases when more than 1 IP is requested. 
 
 The code for the function is shown in \refcode{lst:singleAwkIp}
 
-\textbf{Note: for the sake of the report, the bucket size was used. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
+\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
 
 \begin{equation}\label{eq:bucketSizeHostBits}
 bucketSize = 2^{numHostBits}
@@ -52,9 +52,9 @@ For example, given $S_e = \{1.1.1.0,\enspace2.2.2.0\}$ and $t = 4$ the algorithm
 
 This extension is handled by a separate function which is called prior to starting the algorithm, to determine the appropriate starting bucket size. This function only requires the total number of IPs desired ($t$) and the existing set of IPs ($S_e$) as parameters. 
 
-The function starts by assigning IPs to buckets using the largest integral power of 2 less than or equal to $t$ rule. It then calculates $n$ (the number of IPs that need to be chosen from the available pool) and checks if any of the existing buckets require \textbf{$n$ or less} IPs to be filled. As only $n$ IPs can be selected, if no buckets can be \textit{filled} by selecting $n$ IPs, there is no possibility of creating CIDR blocks at this bucket size. This is done without considering the available IPs. Thus even if a bucket \textit{could} be filled by choosing $n$ IPs, it may not be. If no buckets can be filled choosing $n$ IPs, the loop continues, checking the next largest bucket size. Otherwise, the function returns the current bucket size.
+The function starts by assigning IPs to buckets using the largest integral power of 2 less than or equal to $t$ rule. It then calculates $n$ (the number of IPs that need to be chosen from the available pool) and checks if any of the existing buckets require \textbf{$n$ or less} IPs to be filled. As only $n$ or less IPs can be selected, if no buckets can be \textit{filled} by selecting $n$ or less IPs, there is no possibility of creating CIDR blocks at this bucket size. This is done without considering the available IPs. Thus even if a bucket \textit{could} be filled by choosing $n$ IPs, it may not be. If no buckets can be filled choosing $n$ or less IPs, the loop continues, checking the next largest bucket size. Otherwise, the function returns the current bucket size.
 
-\textbf{Note: for the sake of the report, the bucket size was used. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
+\textbf{Note for the sake of the report, the size of the bucket was used for explanatory purposes. However the code makes frequent use of the number of host bits. These are related through \refeq{eq:bucketSizeHostBits}}
 
 \begin{equation}\label{eq:bucketSizeHostBits}
 bucketSize = 2^{numHostBits}

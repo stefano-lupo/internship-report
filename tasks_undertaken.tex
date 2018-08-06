@@ -337,7 +337,7 @@ Finally since a total of 7 IPs were required and 6 have now been selected, a fin
 There are two enhancements that can be made to the algorithm at this point.
 
 \begin{enumerate}
-\item{A better method for choosing a \textbf{single} IP from the available IP pool. This should not be done randomly as this could result in large CIDR blocks contained in the available IP pool being broken up unnecessarily. This is described in \refapp{appendix:smartSingleIP}.}
+\item{A better method for choosing a \textbf{single} IP from the available IP pool. This shouldn't be done randomly as this could result in large CIDR blocks contained in the available IP pool being broken up unnecessarily. This is described in \refapp{appendix:smartSingleIP}.}
 \item{In the case where the existing set of IPs ($S_e$) is non empty, the previously described method of choosing the highest integral power of 2 that is less than or equal to $t$ for the initial bucket size is not ideal. Given a set of 2 IPs and requiring a total of 4 IPs, the approach would suggest starting with a bucket size of 4. However unless the existing IPs themselves are contiguous, there is no possibility of forming a CIDR block of size 4. This is described in detail in \refapp{appendix:smartInitBucket}.}
 \end{enumerate}
 
